@@ -1,0 +1,25 @@
+{
+  "$schema": "https://vuesp.ru/schema/vuesp-project.json",
+  "name": "vuesp.led-matrix",
+  "summary": "16x16 WS2812 LED matrix with effects, brightness control and a visual draw editor.",
+  "description": "## Vuesp LED Matrix\n\nESP8266 project for a 16x16 WS2812/NeoPixel matrix (256 pixels) connected to GPIO 14. The firmware includes fire, lighters, rainbow, twinkling stars and theater chase effects, global brightness control and a visual `/draw` editor in the web UI.\n\nThe current frame and effect settings are stored in LittleFS and restored after reboot. The standard Vuesp dashboard, GPIO, ScriptRunner and OTA features are included.",
+  "platforms": [
+    "ESP8266"
+  ],
+  "tags": [
+    "led",
+    "matrix",
+    "ws2812",
+    "neopixel",
+    "effects",
+    "esp8266"
+  ],
+  "preset": "led",
+  "createdWith": "vuesp-create@1.0.1",
+  "createdAt": "2026-11-09T01:08:43+03:00",
+  "template": {
+    "source": "local",
+    "ref": "local",
+    "commit": "8ebddcfc6f90135d6b2c1532c29eac0fd293f4ae"
+  }
+}
