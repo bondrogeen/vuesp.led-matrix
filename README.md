@@ -4,6 +4,16 @@ LED-матрица 16×16: эффекты, сценарии и визуальн�
 
 Проект собран на базе шаблона [Vuesp](https://github.com/bondrogeen/vuesp): прошивка PlatformIO + web UI на Vue 3 и `vuesp-components`.
 
+## Документация
+
+Подробное описание платы, распиновка, схема, ScriptRunner и ограничения — в [DOCS.md](./DOCS.md).
+
+## Особенности
+
+- 256 WS2812B на GPIO14 (D5), шесть эффектов и редактор `/draw`.
+- Датчики BMP280 и AHT10/20 на I2C (SDA GPIO0, SCL GPIO2).
+- Кнопка переключения эффектов на GPIO13.
+
 ## Плата и окружение
 
 - PlatformIO env: `esp8266`
