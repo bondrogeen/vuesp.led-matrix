@@ -1,26 +1,13 @@
-import type {
-  IMessageInfo,
-  IMessageProgress,
-  IMessagePort,
-  IMessageMessage,
-  IMessageDallas,
-  IMessageDiscovery,
-  INotification,
-  IDashboardItem,
-  IMenuItem,
-  IDialog,
-  IPackage,
-  ISuggestion,
-  IMessageDevice,
-} from 'vuesp-components/types';
+import type { INotification, IDashboardItem, IMenuItem, IDialog, IPackage, ISuggestion } from 'vuesp-components/types';
+import type { IMessageInfo, IMessageProgress, IMessagePort, IMessageMessage, IMessageDallas, IMessageDiscovery, IMessageDevice } from './protocol';
 
-import type { TypeMessage, IMyMessageSettings, IDraw, ISensors } from './custom';
+import type { TTypeMessage, IMyMessageSettings, IDraw, ISensors } from './custom';
 
 export type * from './custom';
 
-type TypeMessageMap = { [K in TypeMessage['key']]: Extract<TypeMessage, { key: K }>['object'] };
+type TypeMessageMap = { [K in TTypeMessage['key']]: Extract<TTypeMessage, { key: K }>['object'] };
 
-export type TypeSend = <K extends keyof TypeMessageMap>(key: K, object?: TypeMessageMap[K]) => void;
+export type TTypeSend = <K extends keyof TypeMessageMap>(key: K, object?: TypeMessageMap[K]) => void;
 
 // ======== IWebSocketStore ===========
 

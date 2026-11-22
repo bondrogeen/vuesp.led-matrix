@@ -4,26 +4,26 @@
       <div class="text-2xl font-bold mb-4">{{ $t('disconn') }}</div>
 
       <div class="flex justify-center">
-        <v-loader class="text-primary"></v-loader>
+        <v-loader class="text-cyan-main"></v-loader>
       </div>
     </AppOverlay>
 
     <div class="flex h-screen overflow-hidden">
       <AppAside v-if="!isIframe" :isSidebar="isSidebar" @sidebar="onSidebar">
         <h3 class="mb-4 text-xs h-5 uppercase flex items-center gap-2 justify-between" :class="isSidebar ? 'lg:hidden' : ''">
-          <span v-if="nameDevice" class="text-gray-400 text-nowrap">{{ nameDevice }}</span>
+          <span v-if="nameDevice" class="text-gray-main text-nowrap">{{ nameDevice }}</span>
         </h3>
 
         <AppNav :menu="getMenu" :isSidebar="isSidebar" :fullPath="fullPath" @sidebar="onSidebar">
           <template #icon="{ item }">
-            <icon-ri-home-line v-if="item.icon === 'home'" class="size-6" />
-            <icon-ri-dashboard-line v-else-if="item.icon === 'dashboard'" class="size-6" />
-            <icon-ri-file-code-line v-else-if="item.icon === 'script'" class="size-6" />
-            <icon-ri-equalizer-line v-else-if="item.icon === 'settings'" class="size-6" />
-            <icon-ri-database-2-line v-else-if="item.icon === 'storage'" class="size-6" />
-            <icon-ri-cpu-line v-else-if="item.icon === 'gpio'" class="size-6" />
+            <VIcon name="home" v-if="item.icon === 'home'" class="size-5" />
+            <VIcon name="dashboard" v-else-if="item.icon === 'dashboard'" class="size-5" />
+            <VIcon name="script" v-else-if="item.icon === 'script'" class="size-5" />
+            <VIcon name="settings" v-else-if="item.icon === 'settings'" class="size-5" />
+            <VIcon name="storage" v-else-if="item.icon === 'storage'" class="size-5" />
+            <VIcon name="gpio" v-else-if="item.icon === 'gpio'" class="size-5" />
 
-            <icon-ri-home-line v-else />
+            <VIcon name="home" v-else />
           </template>
         </AppNav>
 
@@ -32,7 +32,7 @@
         <BlockStatus
           v-bind="info"
           :pkg="pkg"
-          class="glass-panel mb-4 w-full px-4 py-4 text-center"
+          class="glass-inset mb-4 w-full px-4 py-4 text-center"
           :class="isSidebar ? 'lg:hidden' : ''"
         >
           <template #name="{ item }">
@@ -42,22 +42,22 @@
             <div class="flex gap-2 mt-4">
               <v-button :href="repo" target="_blank" class="w-full text-white" color="blue">Github</v-button>
 
-              <v-button v-if="home" :href="home" target="_blank" class="w-full" color="blue" outline>{{ $t('homepage') }}</v-button>
+              <v-button v-if="home" :href="home" target="_blank" class="w-full" color="blue" variant="outline">{{ $t('homepage') }}</v-button>
             </div>
           </template>
         </BlockStatus>
       </AppAside>
 
-      <div class="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden scrollbar">
+      <div class="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden scrollbar mobile-hide-scrollbar">
         <AppHeader v-if="!isIframe" :change-theme="changeTheme" :notifications="notifications" @sidebar="isSidebar = !isSidebar" @notif="isSidebarRight = !isSidebarRight"></AppHeader>
 
-        <main :class="isIframe ? 'no-scrollbar' : 'px-4 py-6 sm:px-6 lg:px-8 flex-auto'">
+        <main :class="isIframe ? 'no-scrollbar' : 'py-6 flex-auto'">
           <div :class="isIframe ? '' : 'container mx-auto h-full'">
             <router-view />
           </div>
         </main>
 
-        <AppProgress v-slot="{ isDone }" v-bind="progress" :timeout="2000" class="fixed right-4 md:right-10 lg:right-20 top-20 z-20" @close="webSocketStore.SET_PROGRESS">
+        <AppProgress v-slot="{ isDone }" v-bind="progress" :timeout="2000" class="fixed right-4 md:right-10 lg:right-20 top-20 z-20" @close="webSocketStore.CLEAR_PROGRESS">
           <div class="flex-auto">{{ $t('prog') }}</div>
 
           <span v-if="isDone" class="text-green-600">{{ $t('done') }}</span>
@@ -82,7 +82,7 @@
       <div v-html="dialog.message" />
 
       <div v-if="dialog.callback" class="flex gap-3 mt-4 justify-end">
-        <v-button class="min-w-[100px]" outline color="blue" @click="(dialog.callback(), close())">{{ $t('yes') }}</v-button>
+        <v-button class="min-w-[100px]" variant="outline" color="blue" @click="(dialog.callback(), close())">{{ $t('yes') }}</v-button>
         <v-button class="min-w-[100px]" color="red" @click="close()">{{ $t('no') }}</v-button>
       </div>
     </v-dialog>
@@ -91,7 +91,7 @@
       <BlockInfo v-bind="main.info" :pkg="pkg" class="w-full">
         <template #links="{ links }">
           {{ $t('links') }}:
-          <div class="flex flex-wrap gap-2 text-gray-700 dark:text-gray-400">
+          <div class="flex flex-wrap gap-2 text-gray-dark-30 dark:text-gray-main">
             <a v-for="link of links" :key="link.name" :href="link.href" target="_blank" class="me-4">{{ $t(link.name) }}</a>
           </div>
         </template>
@@ -114,7 +114,7 @@ import { useSocket } from '@/composables/useSocket';
 import { useStore } from '@/composables/useStore';
 import { useLocale } from '@/composables/useLocale';
 
-import { AppHeader, AppNotification, AppOverlay, AppAside, AppNav, AppProgress, BlockInfo, BlockStatus } from 'vuesp-components/components';
+import { AppHeader, AppNotification, AppOverlay, AppAside, AppNav, AppProgress, BlockInfo, BlockStatus, VIcon } from 'vuesp-components/components';
 
 const route = useRoute();
 const { $t, setLocale } = useLocale();

@@ -1,6 +1,6 @@
 import { nextTick, ref, useTemplateRef, watch, type Ref } from 'vue';
 import { timeUtcToString } from 'vuesp-components/helpers';
-import type { IMessageMessage } from 'vuesp-components/types';
+import type { IMessageMessage } from '@/types/protocol';
 
 interface ILog {
   time: string;

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { useWebSocket } from '@/stores/WebSocket';
 import { useAppStore } from './AppStore.ts';
 
-import type { TypeMessage, IStateMain, IWebSocketStore, IMessagePort, IMessageDallas, IMessageProgress, IMessageMessage, IMessageDiscovery, IMyMessageSettings } from '@/types';
+import type { TTypeMessage, IStateMain, IWebSocketStore, IMessagePort, IMessageDallas, IMessageProgress, IMessageMessage, IMessageDiscovery, IMyMessageSettings } from '@/types';
 
 const initialState = (): IWebSocketStore => ({
   main: {
@@ -46,6 +46,9 @@ export const useWebSocketStore = defineStore('webSocketStore', {
     SET_PROGRESS(value: IMessageProgress) {
       this.progress = value;
     },
+    CLEAR_PROGRESS() {
+      this.progress = { status: 0, empty: 0, size: 0, length: 0 };
+    },
     SET_PORT(port: IMessagePort) {
       const gpio = port.gpio.toString();
       this.main.ports[gpio] = port;
@@ -76,7 +79,7 @@ export const useWebSocketStore = defineStore('webSocketStore', {
         this.main.slots[index || 0] = message;
       }
     },
-    onSend(key: TypeMessage['key'], object?: TypeMessage['object']) {
+    onSend(key: TTypeMessage['key'], object?: TTypeMessage['object']) {
       const store = useWebSocket();
       store.onSend(key, object);
     },

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue';
-import type { TypeMessage, IMessageScan, IListItem, TypeSend } from '@/types';
+import type { TTypeMessage, IMessageScan, IListItem, TTypeSend } from '@/types';
 
 import { computed, ref, nextTick, watch } from 'vue';
 import { required, maxLen, minLen, sameAs, ip, minVal, maxVal } from 'vuesp-components/validate';
@@ -8,12 +8,12 @@ import { required, maxLen, minLen, sameAs, ip, minVal, maxVal } from 'vuesp-comp
 import { KEYS } from '@/utils/const';
 
 import { useForm } from 'vuesp-components/composables';
-import type { ValidationSchema } from 'vuesp-components/types';
+import type { TValidationSchema } from 'vuesp-components/types';
 
 import { useConnection } from '@/composables/useConnection';
 import { arrToStr, strToArr } from 'vuesp-components/helpers';
 
-import { VCheckbox, BlockScan, BlockService, BlockUpdate } from 'vuesp-components/components';
+import { VCheckbox, BlockScan, BlockService, BlockUpdate, VIcon, VCard } from 'vuesp-components/components';
 import { useLocale } from '@/composables/useLocale';
 import { useFetch } from '@vueuse/core';
 
@@ -30,11 +30,11 @@ const isDialog = ref(false);
 
 const scanList: Ref<Partial<IMessageScan>[]> = ref([]);
 
-const onMessage = ({ key, object }: TypeMessage) => {
+const onMessage = ({ key, object }: TTypeMessage) => {
   if (key === KEYS.SCAN && object) scanList.value.push(object);
 };
 
-const onInit = (send: TypeSend) => {
+const onInit = (send: TTypeSend) => {
   send(KEYS.SETTINGS);
 };
 
@@ -55,7 +55,7 @@ const { defineField, handleSubmit } = useForm({
       reAuthPassword: settings.value.authMode ? [required, maxLen(12), sameAs('authPass')] : [],
       discoveryInterval: settings.value.discovery ? [required, minVal(5), maxVal(255)] : [],
       discoveryPort: settings.value.discovery ? [required, minVal(1000), maxVal(65535)] : [],
-    }) as ValidationSchema,
+    }) as TValidationSchema,
 });
 
 const [wifiSsid, wifiSsidProps] = defineField<string>('wifiSsid');
@@ -140,7 +140,7 @@ const onMenu = () => {
   onSubmit();
 };
 
-const onSelectSsid = ({ ssid }: IMessageScan) => {
+const onSelectSsid = ({ ssid = '' }: Partial<IMessageScan>) => {
   settings.value.wifiMode = 1;
   settings.value.wifiSsid = ssid;
   wifiSsid.value = ssid;
@@ -182,11 +182,11 @@ const onUpdate = (name: string, files: FormData) => {
 
 <template>
   <div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
-    <card-main class="xl:col-span-2 2xl:col-span-3">
+    <VCard class="xl:col-span-2 2xl:col-span-3" hover>
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
           <div class="flex justify-between mb-4 md:col-span-2">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">{{ $t('wifi') }}</h3>
+            <h3 class="text-lg font-semibold text-gray-dark-30 dark:text-white/90">{{ $t('wifi') }}</h3>
           </div>
 
           <div class="mb-6">
@@ -195,28 +195,28 @@ const onUpdate = (name: string, files: FormData) => {
 
           <v-text-field v-model="wifiSsid" v-bind="wifiSsidProps" :label="$t('ssid')" :disabled="isWifi" :append-button="!isWifi" @on-icon="onScan">
             <template #icon>
-              <icon-ri-search-line></icon-ri-search-line>
+              <VIcon name="search"></VIcon>
             </template>
           </v-text-field>
 
           <v-text-field id="wifiPass" v-model="wifiPass" v-bind="wifiPassProps" :label="$t('pass')" :disabled="isWifi" :type="isPass ? 'text' : 'password'" @on-icon="isPass = !isPass">
             <template #icon>
-              <icon-ri-eye-line v-if="isPass" class="size-5"></icon-ri-eye-line>
-              <icon-ri-eye-off-line v-else class="size-5"></icon-ri-eye-off-line>
+              <VIcon name="eye" v-if="isPass" class="size-5"></VIcon>
+              <VIcon name="eye-off" v-else class="size-5"></VIcon>
             </template>
           </v-text-field>
 
           <v-text-field v-model="rePassword" v-bind="rePasswordProps" :label="$t('passRe')" :disabled="isWifi" :type="isPass ? 'text' : 'password'" @on-icon="isPass = !isPass">
             <template #icon>
-              <icon-ri-eye-line v-if="isPass" class="size-5"></icon-ri-eye-line>
-              <icon-ri-eye-off-line v-else class="size-5"></icon-ri-eye-off-line>
+              <VIcon name="eye" v-if="isPass" class="size-5"></VIcon>
+              <VIcon name="eye-off" v-else class="size-5"></VIcon>
             </template>
           </v-text-field>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
           <div class="flex justify-between mb-4 md:col-span-2">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-0">{{ $t('ipSett') }}</h3>
+            <h3 class="text-lg font-semibold text-gray-dark-30 dark:text-white/90 mb-0">{{ $t('ipSett') }}</h3>
 
             <div>
               <VCheckbox v-model="settings.wifiDhcp">{{ $t('dhcp') }}</VCheckbox>
@@ -232,9 +232,9 @@ const onUpdate = (name: string, files: FormData) => {
           <v-text-field v-model="wifiDns" v-bind="wifiDnsProps" :label="$t('dns')" :disabled="isWifiDHCP" />
         </div>
       </div>
-    </card-main>
+    </VCard>
 
-    <card-main :title="$t('security')">
+    <VCard :title="$t('security')" hover>
       <template #header>
         <div class="col-span-full">
           <VCheckbox v-model="settings.authMode">{{ $t('auth') }}</VCheckbox>
@@ -246,37 +246,37 @@ const onUpdate = (name: string, files: FormData) => {
 
         <v-text-field v-model="authPass" v-bind="authPassProps" :label="$t('pass')" class="col-end-2" :type="isAuthPass ? 'text' : 'password'" :disabled="isAuth" @on-icon="isAuthPass = !isAuthPass">
           <template #icon>
-            <icon-ri-eye-line v-if="isAuthPass" class="size-5"></icon-ri-eye-line>
-            <icon-ri-eye-off-line v-else class="size-5"></icon-ri-eye-off-line>
+            <VIcon name="eye" v-if="isAuthPass" class="size-5"></VIcon>
+            <VIcon name="eye-off" v-else class="size-5"></VIcon>
           </template>
         </v-text-field>
 
         <v-text-field v-model="reAuthPassword" v-bind="reAuthPasswordProps" :label="$t('pass')" :type="isAuthPass ? 'text' : 'password'" :disabled="isAuth" @on-icon="isAuthPass = !isAuthPass">
           <template #icon>
-            <icon-ri-eye-line v-if="isAuthPass" class="size-5"></icon-ri-eye-line>
-            <icon-ri-eye-off-line v-else class="size-5"></icon-ri-eye-off-line>
+            <VIcon name="eye" v-if="isAuthPass" class="size-5"></VIcon>
+            <VIcon name="eye-off" v-else class="size-5"></VIcon>
           </template>
         </v-text-field>
       </div>
-    </card-main>
+    </VCard>
 
-    <card-main :title="$t('update')">
+    <VCard :title="$t('update')" hover>
       <BlockUpdate v-slot="{ file }" @update="onUpdate">
         <span>{{ file || $t('selectFile') }}</span>
       </BlockUpdate>
-    </card-main>
+    </VCard>
 
-    <card-main :title="$t('system')">
+    <VCard :title="$t('system')" hover>
       <template #header>
-        <button class="text-gray-400 cursor-pointer" @click="dialogInfo = true">
-          <icon-ri-information-line class="size-5" />
+        <button class="text-gray-main cursor-pointer" @click="dialogInfo = true">
+          <VIcon name="info" class="size-5" />
         </button>
       </template>
 
       <BlockService :locale="getLocale()" :locales="listLocale" @locale="onLocale" @reset="onSureReset" @reboot="onSureReboot" />
-    </card-main>
+    </VCard>
 
-    <card-main :title="`${$t('discovery')} (UDP)`">
+    <VCard :title="`${$t('discovery')} (UDP)`" hover>
       <template #header>
         <div class="col-span-full">
           <VCheckbox v-model="settings.discovery">{{ $t('discovery') }}</VCheckbox>
@@ -286,13 +286,13 @@ const onUpdate = (name: string, files: FormData) => {
       <v-text-field v-model="discoveryPort" v-bind="discoveryPortProps" :label="$t('port')" :disabled="!settings.discovery" />
 
       <v-text-field v-model="discoveryInterval" v-bind="discoveryIntervalProps" :label="$t('interval')" :disabled="!settings.discovery" />
-    </card-main>
+    </VCard>
 
     <teleport to="[data-slot='device']">
       <v-select :items="listMenu" @change="onMenu">
         <template #activator="{ on }">
-          <v-button color="" type="icon" @click="on.click">
-            <icon-ri-more-line class="rotate-90"></icon-ri-more-line>
+          <v-button type="icon" @click="on.click">
+            <VIcon name="more" class="rotate-90"></VIcon>
           </v-button>
         </template>
       </v-select>

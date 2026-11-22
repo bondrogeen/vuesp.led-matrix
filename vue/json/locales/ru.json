@@ -176,7 +176,7 @@
     "docsText": "Прошивка, Web UI, структуры и протокол.",
     "docsIntro": "Если документация недоступна, исходники и примеры можно открыть напрямую.",
     "components": "Компоненты интерфейса",
-    "componentsText": "Живые примеры VButton, VTextField, CardMain и других.",
+    "componentsText": "Живые примеры VButton, VTextField, VCard и других.",
     "componentsSource": "Исходники и примеры компонентов на GitHub.",
     "webUi": "Как устроен Web UI",
     "webUiText": "Структура проекта, страницы, данные и типы.",
@@ -193,5 +193,10 @@
     "scriptsText": "Локальные сценарии и автоматизация.",
     "settingsText": "Wi-Fi, безопасность и обновление.",
     "storageText": "Файлы и конфигурация в LittleFS."
+  },
+  "dashboard": {
+    "newValue": "Новое значение",
+    "getResult": "Результат Get",
+    "argument": "Аргумент"
   }
 }

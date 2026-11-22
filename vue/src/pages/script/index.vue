@@ -13,7 +13,7 @@ import { useSlots } from '@/composables/script/useSlots';
 import { normalizeScript } from 'vuesp-components/helpers';
 import { useFiles } from '@/composables/useFiles';
 
-import { VFile, ScriptEditor, ScriptViewDocs, VTooltip, ScriptDialog } from 'vuesp-components/components';
+import { VFile, ScriptEditor, ScriptViewDocs, VTooltip, ScriptDialog, VIcon, VCard } from 'vuesp-components/components';
 
 const { $t } = useLocale();
 
@@ -64,14 +64,14 @@ const onRemoveScript = () => {
 </script>
 
 <template>
-  <div class="container mx-auto">
+  <div>
     <div class="flex flex-col gap-6 mx-auto">
       <div class="flex justify-between">
         <h1>{{ $t('menu.script') }}</h1>
 
         <div>
-          <v-button icon @click="dialogViewDocs = true">
-            <icon-ri-file-info-line />
+          <v-button icon @click="dialogViewDocs = true" variant="ghost">
+            <VIcon name="document"  />
           </v-button>
         </div>
       </div>
@@ -79,25 +79,25 @@ const onRemoveScript = () => {
       <div
         class="grid [grid-template-areas:'editor''logs''list'] xl:[grid-template-areas:'list_editor_editor_editor_editor''logs_editor_editor_editor_editor'] xl:grid-rows-[370px_1fr] grid-cols-1 xl:grid-cols-[400px_1fr_1fr_1fr] gap-3 sm:gap-4"
       >
-        <card-main :title="$t('list')" class="order-2 md:order-1 [grid-area:list]">
+        <VCard :title="$t('list')" class="order-2 md:order-1 [grid-area:list]" hover>
           <template #header>
             <div class="flex gap-3">
-              <v-button color="transparent" class="size-6 text-gray-500" :title="$t('export')" :disabled="false" @click="createLink(PATH)">
-                <icon-ri-upload-2-line></icon-ri-upload-2-line>
+              <v-button class="size-6 text-gray-dark-25" :title="$t('export')" :disabled="false" @click="createLink(PATH)" variant="ghost">
+                <VIcon name="upload"></VIcon>
               </v-button>
 
-              <v-button color="transparent" class="size-6 text-gray-500" :title="$t('import')" :disabled="false" @click="onClickUpload()">
-                <icon-ri-download-2-line></icon-ri-download-2-line>
+              <v-button class="size-6 text-gray-dark-25" :title="$t('import')" :disabled="false" @click="onClickUpload()" variant="ghost">
+                <VIcon name="download"></VIcon>
               </v-button>
 
-              <v-button color="transparent" class="size-6 text-gray-500" :title="$t('add')" :disabled="false" @click="onAddScriptDialog()">
-                <icon-ri-sticky-note-add-line class=""></icon-ri-sticky-note-add-line>
+              <v-button class="size-6 text-gray-dark-25" :title="$t('add')" :disabled="false" @click="onAddScriptDialog()" variant="ghost">
+                <VIcon name="add"></VIcon>
               </v-button>
               <VFile accept=".txt" @change="onUpload($event, PATH)"></VFile>
             </div>
           </template>
 
-          <ul class="overflow-y-auto flex flex-col rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 p-2 h-40 scrollbar">
+          <ul class="overflow-y-auto flex flex-col rounded-md border border-gray-light-10 dark:border-gray-dark-30 bg-gray-light-30 dark:bg-gray-dark-40 p-2 h-40 scrollbar">
             <li v-for="script of scripts" :key="script.id" class="group text-sm cursor-pointer transition-all flex items-center justify-between hover:opacity-80 px-1" @click="onSelect(script)">
               <div class="flex items-center gap-2 min-w-0">
                 <span>#{{ script.id }}</span>
@@ -106,17 +106,17 @@ const onRemoveScript = () => {
 
               <div class="group flex items-center gap-1">
                 <v-button
-                  color="transparent"
                   class="size-6"
-                  :class="isScriptSave(script) ? 'text-gray-500' : 'text-blue-500 animate-shake'"
+                  :class="isScriptSave(script) ? 'text-gray-dark-25' : 'text-blue-500 animate-shake'"
                   :title="$t('save')"
                   :disabled="isScriptSave(script)"
                   @click="onSaveScript"
+                  variant="ghost"
                 >
-                  <icon-ri-save-line class=""></icon-ri-save-line>
+                  <VIcon name="save"></VIcon>
                 </v-button>
-                <v-button color="transparent" class="size-6 text-gray-500 hover:text-red-400" :title="$t('remove')" @click.stop="onRemove(script)">
-                  <icon-ri-delete-bin-line class="transition-all"></icon-ri-delete-bin-line>
+                <v-button class="size-6 text-gray-dark-25 hover:text-red-400" :title="$t('remove')" @click.stop="onRemove(script)" variant="ghost">
+                  <VIcon name="trash" class="transition-all"></VIcon>
                 </v-button>
               </div>
             </li>
@@ -124,29 +124,29 @@ const onRemoveScript = () => {
             <li v-if="scripts.length === 0" class="text-sm text-slate-400 italic px-3 py-4 text-center">{{ $t('noScripts') }}</li>
           </ul>
 
-          <div class="px-2 border-t border-gray-200 dark:border-gray-700 text-slate-400 flex justify-between mt-4 text-xs">
+          <div class="px-2 border-t border-gray-light-10 dark:border-gray-dark-30 text-slate-400 flex justify-between mt-4 text-xs">
             <span>{{ scripts.length }} {{ $t('script', { count: `${scripts.length}` }) }}</span>
           </div>
 
           <div class="mt-4">
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-2">{{ $t('slots') }}</h3>
+              <h3 class="text-lg font-semibold text-gray-dark-30 dark:text-white/90 mb-2">{{ $t('slots') }}</h3>
 
               <div class="flex gap-2">
-                <v-button color="transparent" class="size-5 px-0! text-gray-500 not-disabled:hover:text-blue-600" :disabled="!currentSlot?.active" @click="onStopScript">
-                  <icon-ri-stop-circle-line class="transition-all size-5"></icon-ri-stop-circle-line>
+                <v-button class="size-5 px-0! text-gray-dark-25 not-disabled:hover:text-blue-600" :disabled="!currentSlot?.active" @click="onStopScript" variant="ghost">
+                  <VIcon name="stop-circle" class="transition-all size-5"></VIcon>
                 </v-button>
 
-                <v-button color="transparent" class="size-5 px-0! text-gray-500 not-disabled:hover:text-red-600" :disabled="!currentSlot?.text" @click="onRemoveScript">
-                  <icon-ri-close-circle-line class="transition-all size-5"></icon-ri-close-circle-line>
+                <v-button class="size-5 px-0! text-gray-dark-25 not-disabled:hover:text-red-600" :disabled="!currentSlot?.text" @click="onRemoveScript" variant="ghost">
+                  <VIcon name="close" class="transition-all size-5"></VIcon>
                 </v-button>
 
-                <v-button color="transparent" class="size-5" :title="$t('update')" @click="onUpdateScript">
-                  <icon-ri-refresh-line class="text-gray-500"></icon-ri-refresh-line>
+                <v-button class="size-5" :title="$t('update')" @click="onUpdateScript" variant="ghost">
+                  <VIcon name="refresh" class="text-gray-dark-25"></VIcon>
                 </v-button>
 
-                <v-button color="transparent" class="size-5" :title="$t('stop')" :disabled="!slotInfo.used" @click="onStopScriptAll">
-                  <icon-ri-stop-circle-fill class="text-gray-500"></icon-ri-stop-circle-fill>
+                <v-button class="size-5" :title="$t('stop')" :disabled="!slotInfo.used" @click="onStopScriptAll" variant="ghost">
+                  <VIcon name="stop-circle" class="text-gray-dark-25"></VIcon>
                 </v-button>
               </div>
             </div>
@@ -155,12 +155,12 @@ const onRemoveScript = () => {
               <li v-for="slot in main.slots" :key="slot.index" class="group text-sm transition-all flex items-center rounded">
                 <VTooltip>
                   <template #activator>
-                    <v-button class="px-0! rounded-none" :class="getColorSlot(slot)" color="" size="none" @click="onSlot(slot)">
+                    <v-button class="px-0! rounded-none" :class="getColorSlot(slot)" size="none" @click="onSlot(slot)" variant="none">
                       <div class="flex-[0_0_8px] h-4 w-2"></div>
                     </v-button>
                   </template>
                   <template #default="{ show }">
-                    <div v-if="show" class="text-sm absolute bottom-full left-0 bg-white-main px-3 py-2 rounded shadow-nav z-5 w-50 bg-white dark:bg-gray-800">
+                    <div v-if="show" class="text-sm absolute bottom-full left-0 bg-white-main px-3 py-2 rounded shadow-nav z-5 w-50 bg-white dark:bg-gray-dark-30">
                       <div class="text-slate-400">{{ slot?.id === 255 ? '' : `id:${slot?.id}` }} ({{ slot.active ? 'active' : slot.handler ? 'event' : slot?.id === 255 ? 'empty' : 'stopped' }})</div>
 
                       <p>{{ slot?.text }}</p>
@@ -171,58 +171,58 @@ const onRemoveScript = () => {
             </ul>
           </div>
 
-          <div class="px-2 border-t border-gray-200 dark:border-gray-700 text-slate-400 flex text-xs">
+          <div class="px-2 border-t border-gray-light-10 dark:border-gray-dark-30 text-slate-400 flex text-xs">
             <span>{{ `${$t('total')}: ${slotInfo.total} ${$t('used')}: ${slotInfo.used}` }}</span>
           </div>
-        </card-main>
+        </VCard>
 
-        <card-main :title="`${$t('editor')}  ${selectedScript?.name ? selectedScript?.name : ''}`" class="order-1 [grid-area:editor]">
+        <VCard :title="`${$t('editor')}  ${selectedScript?.name ? selectedScript?.name : ''}`" class="order-1 [grid-area:editor]" hover>
           <template #header>
             <div class="flex gap-3">
               <v-button
-                color="transparent"
                 class="size-6"
-                :class="!Boolean(content.trim()) ? 'text-gray-500' : 'text-green-500'"
+                :class="!Boolean(content.trim()) ? 'text-gray-dark-25' : 'text-green-500'"
                 :title="$t('run')"
                 :disabled="!Boolean(content.trim()) || !selectedScript?.name"
                 @click="onRunScript()"
+                variant="ghost"
               >
-                <icon-ri-play-circle-line />
+                <VIcon name="play-circle"  />
               </v-button>
 
               <v-select :items="examples" @change="onExample">
                 <template #activator="{ on }">
-                  <v-button color="transparent" class="size-6" :disabled="!selectedScript" @click="on.click">
-                    <icon-ri-file-list-3-line class="text-gray-500"></icon-ri-file-list-3-line>
+                  <v-button class="size-6" :disabled="!selectedScript" @click="on.click" variant="ghost">
+                    <VIcon name="file-list" class="text-gray-dark-25"></VIcon>
                   </v-button>
                 </template>
               </v-select>
             </div>
           </template>
 
-          <div class="flex-auto bg-gray-50 dark:bg-gray-900 dark:border-gray-700 w-full overflow-auto scrollbar h-50 xl:h-[calc(100dvh-300px)]">
+          <div class="flex-auto bg-gray-light-30 dark:bg-gray-dark-40 dark:border-gray-dark-30 w-full overflow-auto scrollbar h-50 xl:h-[calc(100dvh-300px)]">
             <ScriptEditor v-if="selectedScript?.name" v-model="content" class="h-full w-full overflow-auto scrollbar" :suggestions="suggestions"></ScriptEditor>
-            <p v-else class="text-gray-500 ms-3 text-center mt-4">{{ $t('selectScript') }}</p>
+            <p v-else class="text-gray-dark-25 ms-3 text-center mt-4">{{ $t('selectScript') }}</p>
           </div>
 
-          <div class="text-sm border-t border-gray-200 dark:border-gray-700 text-slate-400 flex flex-wrap justify-between mt-4">
+          <div class="text-sm border-t border-gray-light-10 dark:border-gray-dark-30 text-slate-400 flex flex-wrap justify-between mt-4">
             <span>
               <i class="far fa-file-alt mr-1"></i>
               {{ `${$t('length')}: ${normalizeScript(content)?.length || 0}` }}
             </span>
           </div>
-        </card-main>
+        </VCard>
 
-        <card-main :title="$t('logs')" class="order-1 [grid-area:logs]">
+        <VCard :title="$t('logs')" class="order-1 [grid-area:logs]" hover>
           <template #header>
-            <v-button color="transparent" class="size-6 opacity-60 hover:opacity-100" size="icon" @click="logs = []">
-              <icon-ri-eraser-line class="text-gray-500"></icon-ri-eraser-line>
+            <v-button class="size-6 opacity-60 hover:opacity-100" size="icon" @click="logs = []" variant="ghost">
+              <VIcon name="eraser" class="text-gray-dark-25"></VIcon>
             </v-button>
           </template>
 
           <ul
             ref="container"
-            class="overflow-y-auto flex flex-col rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 p-4 max-h-50 min-h-50 scrollbar"
+            class="overflow-y-auto flex flex-col rounded-md border border-gray-light-10 dark:border-gray-dark-30 bg-gray-light-30 dark:bg-gray-dark-40 p-4 max-h-50 min-h-50 scrollbar"
             @mouseenter="onHover(true)"
             @mouseleave="onHover(false)"
           >
@@ -234,7 +234,7 @@ const onRemoveScript = () => {
             </li>
             <li v-if="logs.length === 0" class="text-sm text-slate-400 italic px-3 py-4 text-center">{{ $t('noLogs') }}</li>
           </ul>
-        </card-main>
+        </VCard>
       </div>
     </div>
 

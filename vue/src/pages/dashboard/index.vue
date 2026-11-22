@@ -6,7 +6,7 @@
       <v-select :items="listMenu" @change="onMenu">
         <template #activator="{ on }">
           <v-button type="icon" @click="on.click">
-            <icon-ri-more-line class="rotate-90"></icon-ri-more-line>
+            <VIcon name="more" class="rotate-90"></VIcon>
           </v-button>
         </template>
       </v-select>
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IListItem, IDashboardItem } from '@/types';
+import type { IListItem, IDashboardItem, TTypeMessage } from '@/types';
 import type { Ref } from 'vue';
 
 import { ref } from 'vue';
@@ -61,7 +61,7 @@ import { COMMAND } from '@/utils/gpio';
 import { useConnection } from '@/composables/useConnection';
 import { pathListDef } from '@/utils/const';
 
-import { CardButton, CardDate, CardDimmer, CardInfo, CardInput, CardList, ItemEdit, VDragDrop } from 'vuesp-components/components';
+import { ICON_NAMES, CardButton, CardDate, CardDimmer, CardInfo, CardInput, CardList, ItemEdit, VDragDrop, VIcon } from 'vuesp-components/components';
 
 import { useLocale } from '@/composables/useLocale';
 
@@ -149,44 +149,24 @@ const onDialog = (data: IDashboardItem) => {
 
 const getState = (item: IDashboardItem) => getStateItem(item, main.value);
 
-const setState = (item: IDashboardItem, value: unknown) => {
-  const data = setStateItem(item, value, main.value);
-  if (Array.isArray(data)) {
-    data.forEach((el) => {
-      const key = el?.key;
-      if (key && el) onSend(key, el);
-    });
-    return;
-  }
-  const key = data.key;
-  if (key && data) onSend(key, data);
+/** Команда устройству: объект с ключом сообщения (PORT, DEVICE, ...). */
+const isDeviceCommand = (value: unknown): value is { key: TTypeMessage['key'] } & Record<string, unknown> => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const key = (value as Record<string, unknown>).key;
+  return typeof key === 'string' && key in KEYS;
 };
 
-const icons = [
-  'bulb',
-  'video',
-  'windy',
-  'camera',
-  'light',
-  'tv',
-  'therm',
-  'store',
-  'socket',
-  'plug',
-  'noti',
-  'lock',
-  'chart',
-  'battery',
-  'ram',
-  'map',
-  'speaker',
-  'timer',
-  'snow',
-  'blaze',
-  'door',
-  'shut',
-  'plant',
-];
+const setState = (item: IDashboardItem, value: unknown) => {
+  const data = setStateItem(item, value, main.value);
+  const commands = Array.isArray(data) ? data : [data];
+
+  for (const command of commands) {
+    if (!isDeviceCommand(command)) continue;
+    onSend(command.key, command as unknown as TTypeMessage['object']);
+  }
+};
+
+const icons = [...ICON_NAMES];
 
 const cards = [...(dashboardCards || []), 'chart'];
 

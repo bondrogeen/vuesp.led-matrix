@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { CardMain } from 'vuesp-components/components';
+import { VIcon, VCard } from 'vuesp-components/components';
 import { secToTime } from 'vuesp-components/helpers';
 
 import { useConnection } from '@/composables/useConnection';
@@ -58,10 +58,10 @@ const resources = computed(() => [
   <div class="container mx-auto space-y-6 pb-10">
     <section class="flex flex-wrap items-start justify-between gap-4">
       <div class="max-w-2xl">
-        <p class="text-sm font-medium text-primary">{{ $t('home') }}</p>
+        <p class="text-sm font-medium text-cyan-main">{{ $t('home') }}</p>
         <h1 class="mt-1">{{ info.name || pkg.name }}</h1>
-        <p class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ pkg.description }}</p>
-        <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+        <p class="mt-2 text-sm leading-relaxed text-gray-dark-25 dark:text-gray-main">{{ pkg.description }}</p>
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-dark-25 dark:text-gray-main">
           <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1" :class="isInit ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'">
             <span class="size-1.5 rounded-full" :class="isInit ? 'bg-emerald-500' : 'bg-amber-500'" />
             {{ isInit ? $t('homePage.online') : $t('homePage.offline') }}
@@ -72,87 +72,86 @@ const resources = computed(() => [
     </section>
 
     <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <CardMain :title="$t('homePage.firmware')" :loading="false">
+      <VCard :title="$t('homePage.firmware')" hover>
         <p class="text-2xl font-bold">{{ firmware }}</p>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">web · {{ pkg.version }}</p>
-      </CardMain>
+        <p class="mt-1 text-xs text-gray-dark-25 dark:text-gray-main">web · {{ pkg.version }}</p>
+      </VCard>
 
-      <CardMain :title="$t('homePage.uptime')" :loading="false">
+      <VCard :title="$t('homePage.uptime')" hover>
         <p class="text-2xl font-bold">{{ uptime }}</p>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $t('homePage.deviceTime') }}: {{ deviceTime }}</p>
-      </CardMain>
+        <p class="mt-1 text-xs text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.deviceTime') }}: {{ deviceTime }}</p>
+      </VCard>
 
-      <CardMain :title="$t('homePage.memory')" :loading="false">
+      <VCard :title="$t('homePage.memory')" hover>
         <div class="flex items-baseline justify-between gap-2">
           <p class="text-2xl font-bold">{{ memoryPercent }}%</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{ memoryUsed }} / {{ memoryTotal }}</p>
+          <p class="text-xs text-gray-dark-25 dark:text-gray-main">{{ memoryUsed }} / {{ memoryTotal }}</p>
         </div>
         <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div class="h-full rounded-full bg-primary transition-all" :style="{ width: `${memoryPercent}%` }" />
+          <div class="h-full rounded-full bg-cyan-main transition-all" :style="{ width: `${memoryPercent}%` }" />
         </div>
-      </CardMain>
+      </VCard>
 
-      <CardMain :title="$t('homePage.id')" :loading="false">
+      <VCard :title="$t('homePage.id')" hover>
         <p class="font-mono text-2xl font-bold">{{ (info.id || 0).toString(16).toUpperCase() }}</p>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ portsCount }} {{ $t('homePage.ports') }} · {{ sensorsCount }} {{ $t('homePage.sensors') }}</p>
-      </CardMain>
+        <p class="mt-1 text-xs text-gray-dark-25 dark:text-gray-main">{{ portsCount }} {{ $t('homePage.ports') }} · {{ sensorsCount }} {{ $t('homePage.sensors') }}</p>
+      </VCard>
     </section>
 
     <section>
       <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 class="text-xl font-bold">{{ $t('homePage.quick') }}</h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $t('homePage.quickText') }}</p>
+          <p class="mt-1 text-sm text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.quickText') }}</p>
         </div>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <router-link
+        <VCard as="router-link"
           v-for="link of quickLinks"
           :key="link.to"
           :to="link.to"
-          class="glass-inset group flex items-center gap-3 rounded-[10px] p-4 transition-colors hover:border-primary/40"
-        >
-          <span class="grid size-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-            <icon-ri-dashboard-line v-if="link.icon === 'dashboard'" class="size-5" />
-            <icon-ri-cpu-line v-else-if="link.icon === 'gpio'" class="size-5" />
-            <icon-ri-file-code-line v-else-if="link.icon === 'script'" class="size-5" />
-            <icon-ri-equalizer-line v-else-if="link.icon === 'settings'" class="size-5" />
-            <icon-ri-database-2-line v-else-if="link.icon === 'storage'" class="size-5" />
+         variant="glass" padding="lg" hover class="group flex items-center gap-3 transition-colors">
+          <span class="grid size-10 shrink-0 place-items-center rounded-md bg-cyan-main/10 text-cyan-main">
+            <VIcon name="dashboard" v-if="link.icon === 'dashboard'" class="size-5" />
+            <VIcon name="gpio" v-else-if="link.icon === 'gpio'" class="size-5" />
+            <VIcon name="script" v-else-if="link.icon === 'script'" class="size-5" />
+            <VIcon name="settings" v-else-if="link.icon === 'settings'" class="size-5" />
+            <VIcon name="storage" v-else-if="link.icon === 'storage'" class="size-5" />
           </span>
           <span class="min-w-0 flex-1">
             <span class="block text-sm font-semibold">{{ link.title }}</span>
-            <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ link.text }}</span>
+            <span class="mt-0.5 block text-xs text-gray-dark-25 dark:text-gray-main">{{ link.text }}</span>
           </span>
-          <icon-ri-arrow-right-line class="size-4 shrink-0 text-gray-400 transition group-hover:text-primary" />
-        </router-link>
+          <VIcon name="arrow-right" class="size-4 shrink-0 text-gray-main transition group-hover:text-cyan-main" />
+        </VCard>
       </div>
     </section>
 
     <div class="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-      <CardMain :title="$t('homePage.device')" :loading="false">
+      <VCard :title="$t('homePage.device')" hover>
         <dl class="grid gap-3 text-sm sm:grid-cols-2">
           <div class="rounded-md bg-white/5 p-3">
-            <dt class="text-xs text-gray-500 dark:text-gray-400">{{ $t('homePage.analog') }}</dt>
+            <dt class="text-xs text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.analog') }}</dt>
             <dd class="mt-1 font-mono">{{ device.analog ?? '—' }}</dd>
           </div>
           <div class="rounded-md bg-white/5 p-3">
-            <dt class="text-xs text-gray-500 dark:text-gray-400">{{ $t('homePage.message') }}</dt>
+            <dt class="text-xs text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.message') }}</dt>
             <dd class="mt-1 truncate">{{ device.message || '—' }}</dd>
           </div>
           <div class="rounded-md bg-white/5 p-3">
-            <dt class="text-xs text-gray-500 dark:text-gray-400">{{ $t('homePage.ports') }}</dt>
+            <dt class="text-xs text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.ports') }}</dt>
             <dd class="mt-1 font-mono">{{ portsCount }}</dd>
           </div>
           <div class="rounded-md bg-white/5 p-3">
-            <dt class="text-xs text-gray-500 dark:text-gray-400">{{ $t('homePage.sensors') }}</dt>
+            <dt class="text-xs text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.sensors') }}</dt>
             <dd class="mt-1 font-mono">{{ sensorsCount }}</dd>
           </div>
         </dl>
-      </CardMain>
+      </VCard>
 
-      <CardMain :title="$t('homePage.docs')" :loading="false">
-        <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ $t('homePage.docsIntro') }}</p>
+      <VCard :title="$t('homePage.docs')" hover>
+        <p class="text-sm leading-relaxed text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.docsIntro') }}</p>
         <div class="mt-3 space-y-2">
           <a
             v-for="resource of resources"
@@ -162,40 +161,40 @@ const resources = computed(() => [
             rel="noreferrer"
             class="flex items-center gap-3 rounded-md bg-white/5 p-3 transition-colors hover:bg-white/10"
           >
-            <icon-ri-book-open-line v-if="resource.icon === 'book'" class="size-4 shrink-0 text-primary" />
-            <icon-ri-layout-grid-line v-else-if="resource.icon === 'grid'" class="size-4 shrink-0 text-primary" />
-            <icon-ri-code-s-slash-line v-else-if="resource.icon === 'code'" class="size-4 shrink-0 text-primary" />
-            <icon-ri-github-fill v-else-if="resource.icon === 'github'" class="size-4 shrink-0 text-primary" />
+            <VIcon name="book-open" v-if="resource.icon === 'book'" class="size-4 shrink-0 text-cyan-main" />
+            <VIcon name="layout-grid" v-else-if="resource.icon === 'grid'" class="size-4 shrink-0 text-cyan-main" />
+            <VIcon name="code" v-else-if="resource.icon === 'code'" class="size-4 shrink-0 text-cyan-main" />
+            <VIcon name="github" v-else-if="resource.icon === 'github'" class="size-4 shrink-0 text-cyan-main" />
             <span class="min-w-0 flex-1">
               <span class="block text-xs font-medium">{{ resource.title }}</span>
-              <span class="mt-0.5 block text-[10px] leading-snug text-gray-500 dark:text-gray-400">{{ resource.text }}</span>
+              <span class="mt-0.5 block text-[10px] leading-snug text-gray-dark-25 dark:text-gray-main">{{ resource.text }}</span>
             </span>
-            <icon-ri-external-link-line class="size-3.5 shrink-0 text-gray-400" />
+            <VIcon name="external" class="size-3.5 shrink-0 text-gray-main" />
           </a>
         </div>
-      </CardMain>
+      </VCard>
     </div>
 
-    <CardMain :title="$t('homePage.start')" :loading="false">
-      <p class="max-w-2xl text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ $t('homePage.startText') }}</p>
+    <VCard :title="$t('homePage.start')" hover>
+      <p class="max-w-2xl text-sm leading-relaxed text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.startText') }}</p>
       <ol class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <li class="rounded-md bg-white/5 p-3">
-          <span class="text-xs font-bold text-primary">1</span>
+          <span class="text-xs font-bold text-cyan-main">1</span>
           <p class="mt-1 text-xs font-medium">{{ $t('homePage.stepWifi') }}</p>
         </li>
         <li class="rounded-md bg-white/5 p-3">
-          <span class="text-xs font-bold text-primary">2</span>
+          <span class="text-xs font-bold text-cyan-main">2</span>
           <p class="mt-1 text-xs font-medium">{{ $t('homePage.stepGpio') }}</p>
         </li>
         <li class="rounded-md bg-white/5 p-3">
-          <span class="text-xs font-bold text-primary">3</span>
+          <span class="text-xs font-bold text-cyan-main">3</span>
           <p class="mt-1 text-xs font-medium">{{ $t('homePage.stepDashboard') }}</p>
         </li>
         <li class="rounded-md bg-white/5 p-3">
-          <span class="text-xs font-bold text-primary">4</span>
+          <span class="text-xs font-bold text-cyan-main">4</span>
           <p class="mt-1 text-xs font-medium">{{ $t('homePage.stepDocs') }}</p>
         </li>
       </ol>
-    </CardMain>
+    </VCard>
   </div>
 </template>

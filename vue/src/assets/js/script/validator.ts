@@ -1,4 +1,4 @@
-// export interface ValidationError {
+// export interface IValidationError {
 //     key: string;
 //     line: number;
 //     position: number;
@@ -6,17 +6,17 @@
 //     params?: Record<string, string | number>;
 // }
 
-// export interface ValidationResult {
+// export interface IValidationResult {
 //     valid: boolean;
-//     errors: ValidationError[];
+//     errors: IValidationError[];
 // }
 
-// export interface ValidationContext {
+// export interface IValidationContext {
 //     script: string;
 //     pos: number;
 //     line: number;
 //     column: number;
-//     errors: ValidationError[];
+//     errors: IValidationError[];
 //     maxErrors: number;
 //     ifDepth: number;
 //     whileDepth: number;
@@ -36,7 +36,7 @@
 // // ================ 2. COMMAND INTERFACES (command.ts) =========
 // // ============================================================
 
-// export interface CommandConfig {
+// export interface ICommandConfig {
 //     name: string;
 //     pattern: string;
 //     description?: string;
@@ -44,29 +44,29 @@
 //     maxDepth?: number;
 //     allowNesting?: boolean;
 //     argTypes?: string[];
-//     customValidator?: (args: any[], context: ValidationContext) => { valid: boolean; error?: string; params?: Record<string, any> };
+//     customValidator?: (args: any[], context: IValidationContext) => { valid: boolean; error?: string; params?: Record<string, any> };
 // }
 
-// export interface CommandHandler {
+// export interface ICommandHandler {
 //     name: string;
 //     priority: number;
-//     match(context: ValidationContext): boolean;
+//     match(context: IValidationContext): boolean;
 //     validate(engine: ValidatorEngine): void;
 // }
 
-// export interface VariableValidator {
+// export interface IVariableValidator {
 //     name: string;
 //     priority: number;
-//     validate(context: ValidationContext, varName: string): boolean;
+//     validate(context: IValidationContext, varName: string): boolean;
 // }
 
-// export interface PostValidationHook {
+// export interface IPostValidationHook {
 //     name: string;
 //     priority: number;
-//     execute(context: ValidationContext, result: ValidationResult): ValidationResult;
+//     execute(context: IValidationContext, result: IValidationResult): IValidationResult;
 // }
 
-// export interface ExpressionHandler {
+// export interface IExpressionHandler {
 //     name: string;
 //     priority: number;
 //     canHandle(engine: ValidatorEngine): boolean;
@@ -78,12 +78,12 @@
 // // ============================================================
 
 // export class ValidatorEngine {
-//     private context!: ValidationContext;
-//     private commandHandlers: CommandHandler[] = [];
-//     private variableValidators: VariableValidator[] = [];
-//     private postHooks: PostValidationHook[] = [];
-//     private expressionHandlers: ExpressionHandler[] = [];
-//     private commandConfigs: Map<string, CommandConfig> = new Map();
+//     private context!: IValidationContext;
+//     private commandHandlers: ICommandHandler[] = [];
+//     private variableValidators: IVariableValidator[] = [];
+//     private postHooks: IPostValidationHook[] = [];
+//     private expressionHandlers: IExpressionHandler[] = [];
+//     private commandConfigs: Map<string, ICommandConfig> = new Map();
     
 //     private static readonly MAX_ERRORS = 32;
 //     private static readonly MAX_SCRIPT = 256;
@@ -123,33 +123,33 @@
 //         this.registerExpressionHandler(new TimeExpressionHandler());
 //     }
 
-//     registerCommand(handler: CommandHandler): void {
+//     registerCommand(handler: ICommandHandler): void {
 //         this.commandHandlers.push(handler);
 //         this.commandHandlers.sort((a, b) => b.priority - a.priority);
 //     }
 
-//     registerCustomCommand(config: CommandConfig): void {
+//     registerCustomCommand(config: ICommandConfig): void {
 //         this.commandConfigs.set(config.name, config);
 //         const handler = new CustomCommandHandler(config);
 //         this.registerCommand(handler);
 //     }
 
-//     registerVariableValidator(validator: VariableValidator): void {
+//     registerVariableValidator(validator: IVariableValidator): void {
 //         this.variableValidators.push(validator);
 //         this.variableValidators.sort((a, b) => b.priority - a.priority);
 //     }
 
-//     registerPostHook(hook: PostValidationHook): void {
+//     registerPostHook(hook: IPostValidationHook): void {
 //         this.postHooks.push(hook);
 //         this.postHooks.sort((a, b) => b.priority - a.priority);
 //     }
 
-//     registerExpressionHandler(handler: ExpressionHandler): void {
+//     registerExpressionHandler(handler: IExpressionHandler): void {
 //         this.expressionHandlers.push(handler);
 //         this.expressionHandlers.sort((a, b) => b.priority - a.priority);
 //     }
 
-//     validate(script: string): ValidationResult {
+//     validate(script: string): IValidationResult {
 //         this.initContext(script);
         
 //         if (!this.context.script || this.context.script.trim().length === 0) {
@@ -277,7 +277,7 @@
 //     getPos(): number { return this.context.pos; }
 //     getLine(): number { return this.context.line; }
 //     getColumn(): number { return this.context.column; }
-//     getErrors(): ValidationError[] { return this.context.errors; }
+//     getErrors(): IValidationError[] { return this.context.errors; }
     
 //     get ifDepth(): number { return this.context.ifDepth; }
 //     set ifDepth(value: number) { this.context.ifDepth = value; }
@@ -1050,7 +1050,7 @@
 //         });
 //     }
 
-//     private getResult(): ValidationResult {
+//     private getResult(): IValidationResult {
 //         return {
 //             valid: this.context.errors.length === 0,
 //             errors: this.context.errors
@@ -1062,11 +1062,11 @@
 // // ================ 8. COMMAND HANDLERS =======================
 // // ============================================================
 
-// export class EndCommandHandler implements CommandHandler {
+// export class EndCommandHandler implements ICommandHandler {
 //     name = 'end';
 //     priority = 100;
 
-//     match(context: ValidationContext): boolean {
+//     match(context: IValidationContext): boolean {
 //         return context.script.startsWith('end', context.pos);
 //     }
 
@@ -1099,11 +1099,11 @@
 //     }
 // }
 
-// export class ElseCommandHandler implements CommandHandler {
+// export class ElseCommandHandler implements ICommandHandler {
 //     name = 'else';
 //     priority = 90;
 
-//     match(context: ValidationContext): boolean {
+//     match(context: IValidationContext): boolean {
 //         return context.script.startsWith('else', context.pos);
 //     }
 
@@ -1138,11 +1138,11 @@
 //     }
 // }
 
-// export class IfCommandHandler implements CommandHandler {
+// export class IfCommandHandler implements ICommandHandler {
 //     name = 'if';
 //     priority = 80;
 
-//     match(context: ValidationContext): boolean {
+//     match(context: IValidationContext): boolean {
 //         return context.script.startsWith('if:', context.pos);
 //     }
 
@@ -1172,11 +1172,11 @@
 //     }
 // }
 
-// export class WhileCommandHandler implements CommandHandler {
+// export class WhileCommandHandler implements ICommandHandler {
 //     name = 'while';
 //     priority = 70;
 
-//     match(context: ValidationContext): boolean {
+//     match(context: IValidationContext): boolean {
 //         return context.script.startsWith('while:', context.pos);
 //     }
 
@@ -1205,11 +1205,11 @@
 //     }
 // }
 
-// export class OnCommandHandler implements CommandHandler {
+// export class OnCommandHandler implements ICommandHandler {
 //     name = 'on';
 //     priority = 60;
 
-//     match(context: ValidationContext): boolean {
+//     match(context: IValidationContext): boolean {
 //         return context.script.startsWith('on(', context.pos);
 //     }
 
@@ -1245,11 +1245,11 @@
 //     }
 // }
 
-// export class AssignmentCommandHandler implements CommandHandler {
+// export class AssignmentCommandHandler implements ICommandHandler {
 //     name = 'assignment';
 //     priority = 50;
 
-//     match(context: ValidationContext): boolean {
+//     match(context: IValidationContext): boolean {
 //         return context.script[context.pos] === '$';
 //     }
 
@@ -1289,11 +1289,11 @@
 //     }
 // }
 
-// export class FunctionCallCommandHandler implements CommandHandler {
+// export class FunctionCallCommandHandler implements ICommandHandler {
 //     name = 'function-call';
 //     priority = 40;
 
-//     match(context: ValidationContext): boolean {
+//     match(context: IValidationContext): boolean {
 //         const c = context.script[context.pos];
 //         return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 //     }
@@ -1303,17 +1303,17 @@
 //     }
 // }
 
-// export class CustomCommandHandler implements CommandHandler {
+// export class CustomCommandHandler implements ICommandHandler {
 //     name: string;
 //     priority = 30;
-//     private config: CommandConfig;
+//     private config: ICommandConfig;
 
-//     constructor(config: CommandConfig) {
+//     constructor(config: ICommandConfig) {
 //         this.name = config.name;
 //         this.config = config;
 //     }
 
-//     match(context: ValidationContext): boolean {
+//     match(context: IValidationContext): boolean {
 //         return context.script.startsWith(this.config.pattern, context.pos);
 //     }
 
@@ -1400,12 +1400,12 @@
 // // ================ 9. VARIABLE VALIDATORS ====================
 // // ============================================================
 
-// export class PortValidator implements VariableValidator {
+// export class PortValidator implements IVariableValidator {
 //     name = 'port';
 //     priority = 100;
 //     maxPort = 39;
 
-//     validate(context: ValidationContext, varName: string): boolean {
+//     validate(context: IValidationContext, varName: string): boolean {
 //         if (!varName.startsWith('$p')) return true;
 //         const index = parseInt(varName.substring(2));
 //         if (isNaN(index) || index > this.maxPort || index < 0) {
@@ -1422,12 +1422,12 @@
 //     }
 // }
 
-// export class ArrayVarValidator implements VariableValidator {
+// export class ArrayVarValidator implements IVariableValidator {
 //     name = 'array-var';
 //     priority = 90;
 //     maxIndex = 4;
 
-//     validate(context: ValidationContext, varName: string): boolean {
+//     validate(context: IValidationContext, varName: string): boolean {
 //         if (!varName.startsWith('$a')) return true;
 //         const index = parseInt(varName.substring(2));
 //         if (isNaN(index) || index > this.maxIndex || index < 0) {
@@ -1444,12 +1444,12 @@
 //     }
 // }
 
-// export class StringVarValidator implements VariableValidator {
+// export class StringVarValidator implements IVariableValidator {
 //     name = 'string-var';
 //     priority = 80;
 //     maxIndex = 1;
 
-//     validate(context: ValidationContext, varName: string): boolean {
+//     validate(context: IValidationContext, varName: string): boolean {
 //         if (!varName.startsWith('$s')) return true;
 //         const index = parseInt(varName.substring(2));
 //         if (isNaN(index) || index > this.maxIndex || index < 0) {
@@ -1466,12 +1466,12 @@
 //     }
 // }
 
-// export class NumberVarValidator implements VariableValidator {
+// export class NumberVarValidator implements IVariableValidator {
 //     name = 'number-var';
 //     priority = 70;
 //     maxIndex = 9;
 
-//     validate(context: ValidationContext, varName: string): boolean {
+//     validate(context: IValidationContext, varName: string): boolean {
 //         if (!varName.startsWith('$v')) return true;
 //         const index = parseInt(varName.substring(2));
 //         if (isNaN(index) || index > this.maxIndex || index < 0) {
@@ -1488,12 +1488,12 @@
 //     }
 // }
 
-// export class IntVarValidator implements VariableValidator {
+// export class IntVarValidator implements IVariableValidator {
 //     name = 'int-var';
 //     priority = 60;
 //     maxIndex = 9;
 
-//     validate(context: ValidationContext, varName: string): boolean {
+//     validate(context: IValidationContext, varName: string): boolean {
 //         if (!varName.startsWith('$i')) return true;
 //         const index = parseInt(varName.substring(2));
 //         if (isNaN(index) || index > this.maxIndex || index < 0) {
@@ -1510,12 +1510,12 @@
 //     }
 // }
 
-// export class FloatVarValidator implements VariableValidator {
+// export class FloatVarValidator implements IVariableValidator {
 //     name = 'float-var';
 //     priority = 50;
 //     maxIndex = 4;
 
-//     validate(context: ValidationContext, varName: string): boolean {
+//     validate(context: IValidationContext, varName: string): boolean {
 //         if (!varName.startsWith('$f')) return true;
 //         const index = parseInt(varName.substring(2));
 //         if (isNaN(index) || index > this.maxIndex || index < 0) {
@@ -1536,11 +1536,11 @@
 // // ================ 10. POST-VALIDATION HOOKS =================
 // // ============================================================
 
-// export class BlockBalanceHook implements PostValidationHook {
+// export class BlockBalanceHook implements IPostValidationHook {
 //     name = 'block-balance';
 //     priority = 100;
 
-//     execute(context: ValidationContext, result: ValidationResult): ValidationResult {
+//     execute(context: IValidationContext, result: IValidationResult): IValidationResult {
 //         if (context.ifDepth > 0) {
 //             result.errors.push({
 //                 key: 'missingEnd',
@@ -1574,7 +1574,7 @@
 // // ================ 11. EXPRESSION HANDLERS ===================
 // // ============================================================
 
-// export class TimeExpressionHandler implements ExpressionHandler {
+// export class TimeExpressionHandler implements IExpressionHandler {
 //     name = 'time';
 //     priority = 100;
 
@@ -1622,7 +1622,7 @@
 //         return this.engine;
 //     }
     
-//     static validate(script: string): ValidationResult {
+//     static validate(script: string): IValidationResult {
 //         return this.getEngine().validate(script);
 //     }
     
@@ -1630,19 +1630,19 @@
 //         return this.validate(script).valid;
 //     }
     
-//     static registerCommand(config: CommandConfig): void {
+//     static registerCommand(config: ICommandConfig): void {
 //         this.getEngine().registerCustomCommand(config);
 //     }
     
-//     static registerVariableValidator(validator: VariableValidator): void {
+//     static registerVariableValidator(validator: IVariableValidator): void {
 //         this.getEngine().registerVariableValidator(validator);
 //     }
     
-//     static registerPostHook(hook: PostValidationHook): void {
+//     static registerPostHook(hook: IPostValidationHook): void {
 //         this.getEngine().registerPostHook(hook);
 //     }
     
-//     static registerExpressionHandler(handler: ExpressionHandler): void {
+//     static registerExpressionHandler(handler: IExpressionHandler): void {
 //         this.getEngine().registerExpressionHandler(handler);
 //     }
 // }

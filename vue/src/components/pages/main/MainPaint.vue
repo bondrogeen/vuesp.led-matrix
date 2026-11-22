@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
-import { VButton } from 'vuesp-components/components';
+import { VButton, VCard } from 'vuesp-components/components';
 
 import { useLocale } from '@/composables/useLocale';
 
@@ -65,7 +65,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <card-main :title="$t('menu.draw')">
+  <VCard :title="$t('menu.draw')" hover>
     <div class="mb-4 flex flex-wrap gap-2">
       <v-button v-for="tool in tools" :key="tool.name" size="sm" :color="tool.active ? 'blue' : 'gray'" :outline="!tool.active" @click="onTools(tool)">
         {{ tool.name }}
@@ -74,8 +74,8 @@ onMounted(() => {
       <v-button color="blue" size="sm" @click="onClick">send</v-button>
     </div>
 
-    <div class="flex justify-center overflow-auto rounded-lg border border-gray-200/70 bg-black/80 p-2 dark:border-white/10">
+    <div class="flex justify-center overflow-auto rounded-lg border border-gray-light-10/70 bg-black/80 p-2 dark:border-white/10">
       <canvas class="main-paint__canvas"></canvas>
     </div>
-  </card-main>
+  </VCard>
 </template>

@@ -1,4 +1,4 @@
-import type { IMessageDevice, IMessageSettings, TypeConstMessage, TypeKEYS } from 'vuesp-components/types';
+import type { IMessageDevice, IMessageSettings, TypeConstMessage, TypeKEYS } from './protocol';
 
 export interface IDraw {
   key?: number;
@@ -19,24 +19,24 @@ export interface ISensors {
   ahtHumidity: number;
 }
 
-export type MyTypeKEYS = (TypeKEYS & {}) | 'DEVICE' | 'DRAW' | 'SENSORS';
+export type TMyTypeKEYS = (TypeKEYS & {}) | 'DEVICE' | 'DRAW' | 'SENSORS';
 
 interface IKeyMessageDevice {
-  key: Extract<MyTypeKEYS, 'DEVICE'>;
+  key: Extract<TMyTypeKEYS, 'DEVICE'>;
   object?: IMessageDevice | Partial<IMessageDevice>;
 }
 
 interface IKeyMessageDraw {
-  key: Extract<MyTypeKEYS, 'DRAW'>;
+  key: Extract<TMyTypeKEYS, 'DRAW'>;
   object?: IDraw | Partial<IDraw>;
 }
 
 interface IKeyMessageSensors {
-  key: Extract<MyTypeKEYS, 'SENSORS'>;
+  key: Extract<TMyTypeKEYS, 'SENSORS'>;
   object?: ISensors | Partial<ISensors>;
 }
 
-export type TypeMessage = (TypeConstMessage & {}) | IKeyMessageDevice | IKeyMessageDraw | IKeyMessageSensors;
+export type TTypeMessage = (TypeConstMessage & {}) | IKeyMessageDevice | IKeyMessageDraw | IKeyMessageSensors;
 
 export interface IMyMessageSettings extends IMessageSettings {
   EthIp?: [];

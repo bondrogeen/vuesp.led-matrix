@@ -1,4 +1,4 @@
-import type { IWebSocket, TypeMessage } from '../types/types.ts';
+import type { IWebSocket, TTypeMessage } from '../types/types.ts';
 import { KEYS } from '@/utils/const';
 
 import { defineStore } from 'pinia';
@@ -40,7 +40,7 @@ export const useWebSocket = defineStore('webSocket', {
       this.pingDevice = Date.now();
       if (message.data instanceof ArrayBuffer) {
         const data = struct.get(message.data);
-        event.emit('messages', data as TypeMessage);
+        event.emit('messages', data as TTypeMessage);
         if (data) {
           const { object, key } = data;
           if (key !== KEYS.PING) log(object, key);
@@ -63,7 +63,7 @@ export const useWebSocket = defineStore('webSocket', {
       event.emit('connected', false);
       log(data);
     },
-    onSend<K extends TypeMessage['key'], O extends TypeMessage['object']>(key: K, object?: O) {
+    onSend<K extends TTypeMessage['key'], O extends TTypeMessage['object']>(key: K, object?: O) {
       log(key, object);
       if (this.socket && this.socket.readyState === WebSocket.OPEN && this.isConnect) {
         const buffer = struct.set(key, object as Record<string, unknown>);

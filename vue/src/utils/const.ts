@@ -1,4 +1,4 @@
-import type { MyTypeKEYS } from '@/types';
+import type { TMyTypeKEYS } from '@/types';
 
 export const pathListDef = '/default.json';
 
@@ -8,7 +8,7 @@ export const pathTmp = '/tmp';
 export const pathList = `${pathTmp}/dashboard.json`;
 export const pathGPIO = `${pathTmp}/gpio.io`;
 
-export const KEYS: Record<string, MyTypeKEYS> = {
+export const KEYS: Record<string, TMyTypeKEYS> = {
   INIT: 'INIT',
   SETTINGS: 'SETTINGS',
   INFO: 'INFO',
