@@ -192,7 +192,14 @@
     "gpioText": "Pins, modes and values.",
     "scriptsText": "Local scripts and automation.",
     "settingsText": "Wi-Fi, security and updates.",
-    "storageText": "Files and configuration in LittleFS."
+    "storageText": "Files and configuration in LittleFS.",
+    "temperature": "Temperature",
+    "pressure": "Pressure",
+    "altitude": "Altitude",
+    "humidity": "Humidity",
+    "sensorOk": "OK",
+    "sensorError": "No data",
+    "sensorStale": "Stale"
   },
   "dashboard": {
     "newValue": "New value",

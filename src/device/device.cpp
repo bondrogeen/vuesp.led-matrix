@@ -6,8 +6,6 @@
 Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp;
 
-sensors_event_t humidity, temp;
-
 Device device = {KEY_DEVICE, DEVICE_COMMAND_GET_ALL, 0, 0, 0, "", SPEED, EFFECT_DRAW, BRIGHTNESS, 0, 0, 0};
 Draw draw = {KEY_DRAW, DEVICE_COMMAND_GET_ALL, EFFECT_DRAW, BRIGHTNESS, {}};
 Sensors sensors = {KEY_SENSORS};
@@ -16,6 +14,7 @@ Buffer myBuffer = {KEY_BUFFER};
 uint8_t state;
 uint32_t effTimer;
 uint32_t lastTimeDevice = 0;
+uint32_t lastTimeSensors = 0;
 
 void onWsEventDevice(void* arg, uint8_t* data, size_t len, uint32_t clientId, uint8_t task) {
   if (!arg || !data || !len) return;
@@ -156,26 +155,147 @@ void effectsTick(uint32_t now) {
   ledShow();
 }
 
-void getSensors() {
-  sensors.status = aht.getEvent(&humidity, &temp);
+static bool ahtReady = false;
+static float lastAhtTemperature = 0;
+static float lastAhtHumidity = 0;
+static bool lastAhtValid = false;
 
-  sensors.ahtTemperature = temp.temperature;
-  sensors.ahtHumidity = humidity.relative_humidity;
+// Иногда программный I2C на GPIO0/GPIO2 залипает: slave держит SDA низко.
+// 9 тактов SCL + STOP освобождают шину без перезагрузки питания.
+static void recoverI2C() {
+  pinMode(GPIO_SDA, INPUT_PULLUP);
+  pinMode(GPIO_SCL, OUTPUT);
+  digitalWrite(GPIO_SCL, HIGH);
+  delayMicroseconds(5);
 
+  for (uint8_t i = 0; i < 9; i++) {
+    digitalWrite(GPIO_SCL, LOW);
+    delayMicroseconds(5);
+    digitalWrite(GPIO_SCL, HIGH);
+    delayMicroseconds(5);
+  }
+
+  pinMode(GPIO_SDA, OUTPUT);
+  digitalWrite(GPIO_SDA, LOW);
+  delayMicroseconds(5);
+  digitalWrite(GPIO_SCL, HIGH);
+  delayMicroseconds(5);
+  pinMode(GPIO_SDA, INPUT_PULLUP);
+  delayMicroseconds(5);
+
+  Wire.begin(GPIO_SDA, GPIO_SCL);
+  Wire.setClock(50000);
+}
+
+static bool readAht(float& temperature, float& humidity) {
+  for (uint8_t attempt = 0; attempt < 4; attempt++) {
+    Wire.beginTransmission(0x38);
+    Wire.write((uint8_t)0xAC);
+    Wire.write((uint8_t)0x33);
+    Wire.write((uint8_t)0x00);
+    if (Wire.endTransmission() != 0) {
+      delay(50);
+      continue;
+    }
+
+    bool ready = false;
+    for (uint8_t i = 0; i < 12; i++) {
+      delay(10);
+      if (Wire.requestFrom(0x38, 1) != 1) break;
+      if (!(Wire.read() & 0x80)) {
+        ready = true;
+        break;
+      }
+    }
+    if (!ready) {
+      delay(50);
+      continue;
+    }
+
+    if (Wire.requestFrom(0x38, 6) != 6) {
+      delay(50);
+      continue;
+    }
+    uint8_t data[6];
+    for (uint8_t i = 0; i < 6; i++) data[i] = Wire.read();
+
+    uint32_t h = ((uint32_t)data[1] << 12) | ((uint32_t)data[2] << 4) | (data[3] >> 4);
+    uint32_t t = (((uint32_t)data[3] & 0x0F) << 16) | ((uint32_t)data[4] << 8) | data[5];
+    const float hum = (float)h * 100.0f / 1048576.0f;
+    const float tempValue = (float)t * 200.0f / 1048576.0f - 50.0f;
+
+    if (hum < 0 || hum > 100 || tempValue < -40 || tempValue > 85 || (hum == 0 && tempValue == 0)) {
+      delay(50);
+      continue;
+    }
+
+    temperature = tempValue;
+    humidity = hum;
+    return true;
+  }
+  return false;
+}
+
+void sendSensors() {
+  wsSendAll((uint8_t*)&sensors, sizeof(sensors));
+}
+
+void readSensors() {
+  float ahtTemperature = 0;
+  float ahtHumidity = 0;
+  bool ahtOk = readAht(ahtTemperature, ahtHumidity);
+
+  if (!ahtOk) {
+    recoverI2C();
+    ahtReady = aht.begin();
+    delay(50);
+    ahtOk = readAht(ahtTemperature, ahtHumidity);
+  }
+
+  if (ahtOk) {
+    lastAhtTemperature = ahtTemperature;
+    lastAhtHumidity = ahtHumidity;
+    lastAhtValid = true;
+    sensors.status = 1;
+  } else {
+    // 0 — данных ещё не было, 2 — показываем последнее удачное измерение.
+    sensors.status = lastAhtValid ? 2 : 0;
+  }
+
+  sensors.ahtTemperature = lastAhtTemperature;
+  sensors.ahtHumidity = lastAhtHumidity;
   sensors.bmpTemperature = bmp.readTemperature();
   sensors.bmpPressure = bmp.readPressure();
   sensors.bmpAltitude = bmp.readAltitude(1013.25);
-  wsSendAll((uint8_t*)&sensors, sizeof(sensors));
+  sendSensors();
 }
 
 void setupDevice() {
   setupLed();
   ledBrightness(device.brightness);
 
-  Wire.begin(GPIO_SDA, GPIO_SCL);
+  recoverI2C();
+  delay(50);
   bmp.begin();
   bmp.setSampling(Adafruit_BMP280::MODE_NORMAL, Adafruit_BMP280::SAMPLING_X2, Adafruit_BMP280::SAMPLING_X16, Adafruit_BMP280::FILTER_X16, Adafruit_BMP280::STANDBY_MS_500);
-  aht.begin();
+
+  for (uint8_t attempt = 0; attempt < 3 && !ahtReady; attempt++) {
+    ahtReady = aht.begin();
+    if (!ahtReady) delay(100);
+  }
+
+  float ahtTemperature = 0;
+  float ahtHumidity = 0;
+  for (uint8_t attempt = 0; attempt < 3 && !lastAhtValid; attempt++) {
+    if (readAht(ahtTemperature, ahtHumidity)) {
+      lastAhtTemperature = ahtTemperature;
+      lastAhtHumidity = ahtHumidity;
+      lastAhtValid = true;
+      sensors.status = 1;
+      break;
+    }
+    delay(100);
+  }
 
   scriptRunner.setDataProvider(dataProvider);
   scriptRunner.registerFunction("http", httpHandler);
@@ -202,9 +322,13 @@ void loopDevice(uint32_t now) {
   device.button = digitalRead(GPIO_BTN);
   device.sensor = digitalRead(GPIO_HLK_LD101);
 
+  if (now - lastTimeSensors > (lastAhtValid ? 10000 : 2000)) {
+    lastTimeSensors = now;
+    readSensors();
+  }
+
   if (now - lastTimeDevice > 10000) {
     lastTimeDevice = now;
-    getSensors();
     onSendDevice();
   }
 
@@ -230,7 +354,7 @@ void loopDevice(uint32_t now) {
   }
 
   if (tasks[KEY_SENSORS]) {
-    getSensors();
+    sendSensors();
     tasks[KEY_SENSORS] = 0;
   }
 

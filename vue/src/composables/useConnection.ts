@@ -4,16 +4,17 @@ import Queue from '@/assets/js/queue';
 
 import { useStore } from '@/composables/useStore';
 
-import type { TTypeMessage, TTypeSend } from '@/types';
+import type { TMessage, TSend } from '@/types';
+import type { TKey } from '@/generated/protocol';
 
-export const useConnection = (init?: (send: TTypeSend) => void, messages?: (message: TTypeMessage) => void) => {
+export const useConnection = (init?: (send: TSend) => void, messages?: (message: TMessage) => void) => {
   const store = useStore();
 
-  const queue = new Queue<{ key: TTypeMessage['key']; object?: TTypeMessage['object'] }>(100, ({ key, object }) => {
+  const queue = new Queue<{ key: TKey | number; object?: object }>(100, ({ key, object }) => {
     store.wsSend(key, object);
   });
 
-  const onSend = (key: TTypeMessage['key'], object?: TTypeMessage['object']) => {
+  const onSend = (key: TKey | number, object?: object) => {
     queue.add({ key, object });
   };
 
@@ -21,7 +22,7 @@ export const useConnection = (init?: (send: TTypeSend) => void, messages?: (mess
     if (!store.isInit.value && init) init(onSend);
   };
 
-  const onMessages = (message: TTypeMessage) => {
+  const onMessages = (message: TMessage) => {
     messages?.(message);
   };
 

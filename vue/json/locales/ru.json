@@ -192,7 +192,14 @@
     "gpioText": "Пины, режимы и значения.",
     "scriptsText": "Локальные сценарии и автоматизация.",
     "settingsText": "Wi-Fi, безопасность и обновление.",
-    "storageText": "Файлы и конфигурация в LittleFS."
+    "storageText": "Файлы и конфигурация в LittleFS.",
+    "temperature": "Температура",
+    "pressure": "Давление",
+    "altitude": "Высота",
+    "humidity": "Влажность",
+    "sensorOk": "OK",
+    "sensorError": "Нет данных",
+    "sensorStale": "Устарело"
   },
   "dashboard": {
     "newValue": "Новое значение",

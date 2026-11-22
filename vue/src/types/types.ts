@@ -1,15 +1,10 @@
-import type { INotification, IDashboardItem, IMenuItem, IDialog, IPackage, ISuggestion } from 'vuesp-components/types';
-import type { IMessageInfo, IMessageProgress, IMessagePort, IMessageMessage, IMessageDallas, IMessageDiscovery, IMessageDevice } from './protocol';
+import type { IDashboardItem, IDialog, IMenuItem, INotification, IPackage, ISuggestion } from 'vuesp-components/types';
+import type { IDallas, IDevice, IDiscovery, IDraw, IEvent, IInfo, IBuffer, IMessage, IPort, IProgress, ISensors, ISettings, TKey } from '@/generated/protocol';
 
-import type { TTypeMessage, IMyMessageSettings, IDraw, ISensors } from './custom';
+export type { TMessage } from '@/generated/protocol';
 
-export type * from './custom';
+export type TSend = (key: TKey | number, object?: object) => void;
 
-type TypeMessageMap = { [K in TTypeMessage['key']]: Extract<TTypeMessage, { key: K }>['object'] };
-
-export type TTypeSend = <K extends keyof TypeMessageMap>(key: K, object?: TypeMessageMap[K]) => void;
-
-// ======== IWebSocketStore ===========
 
 export interface IAppStore {
   menu: IMenuItem[];
@@ -22,7 +17,6 @@ export interface IAppStore {
   notifications: INotification[];
 }
 
-// ======== IWebSocket ===========
 
 export interface IWebSocket {
   socket: WebSocket | null;
@@ -32,22 +26,23 @@ export interface IWebSocket {
   infoLoaded: boolean;
 }
 
-// ======== IWebSocketStore ===========
 
 export interface IWebSocketStore {
-  settings: IMyMessageSettings;
+  settings: ISettings;
   main: IStateMain;
-  progress: IMessageProgress;
-  message: IMessageMessage;
+  progress: IProgress;
+  message: IMessage;
 }
 
 export interface IStateMain {
-  dallas: Record<string, IMessageDallas>;
-  discovery: Record<string, IMessageDiscovery>;
-  info: IMessageInfo;
-  ports: Record<string, IMessagePort>;
-  device: IMessageDevice;
-  slots: Record<number, IMessageMessage>;
+  dallas: Record<string, IDallas>;
+  discovery: Record<string, IDiscovery>;
+  info: IInfo;
+  ports: Record<string, IPort>;
+  device: IDevice;
   draw: IDraw;
   sensors: ISensors;
+  buffer: IBuffer;
+  event: IEvent;
+  slots: Record<number, IMessage>;
 }

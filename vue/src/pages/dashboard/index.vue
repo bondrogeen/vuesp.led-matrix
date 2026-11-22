@@ -1,12 +1,12 @@
 <template>
-  <div class="container mx-auto">
+  <div>
     <div class="mb-6 flex items-center justify-between">
       <h1>{{ $t('menu.dashboard') }}</h1>
 
       <v-select :items="listMenu" @change="onMenu">
         <template #activator="{ on }">
           <v-button type="icon" @click="on.click">
-            <VIcon name="more" class="rotate-90"></VIcon>
+            <VIcon name="more" :size="18" class="rotate-90" />
           </v-button>
         </template>
       </v-select>
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IListItem, IDashboardItem, TTypeMessage } from '@/types';
+import type { IListItem, IDashboardItem, TMessage } from '@/types';
 import type { Ref } from 'vue';
 
 import { ref } from 'vue';
@@ -55,26 +55,27 @@ import { setStateItem, getStateItem, dashboardCards } from 'vuesp-components/das
 import { randomString } from 'vuesp-components/helpers';
 import { useFetch } from '@vueuse/core';
 
-import { KEYS } from '@/utils/const';
-import { COMMAND } from '@/utils/gpio';
+import { KEY } from '@/utils/const';
+import { CMD, PORT } from '@/generated/protocol';
 
 import { useConnection } from '@/composables/useConnection';
 import { pathListDef } from '@/utils/const';
 
-import { ICON_NAMES, CardButton, CardDate, CardDimmer, CardInfo, CardInput, CardList, ItemEdit, VDragDrop, VIcon } from 'vuesp-components/components';
+import { ICON_NAMES, CardButton, CardDate, CardDimmer, CardInfo, CardInput, CardList, ItemEdit, VIcon, VDragDrop } from 'vuesp-components/components';
 
 import { useLocale } from '@/composables/useLocale';
 
 import CardChart from '@/components/dashboard/CardChart.vue';
 import VIcons from '@/components/ui/icons/VIcons.vue';
+import { localIconNames } from '@/icons';
 
 const { $t } = useLocale();
 
 const { dashboard, main, onSend } = useConnection((send) => {
-  send(KEYS.PORT, { gpio: 0, command: COMMAND.GPIO_COMMAND_GET_ALL });
-  send(KEYS.DEVICE);
-  send(KEYS.BUFFER);
-  send(KEYS.DISCOVERY, { comm: 1 });
+  send(KEY.PORT, { gpio: 0, command: CMD.GET_ALL });
+  send(KEY.DEVICE);
+  send(KEY.BUFFER);
+  send(KEY.DISCOVERY, { command: CMD.GET });
 });
 
 const dialogItem = ref(false);
@@ -92,7 +93,7 @@ const getComponent = ({ type = 'info' }) => {
 };
 
 const onUpdate = () => {
-  onSend(KEYS.BUFFER);
+  onSend(KEY.BUFFER);
 };
 
 const onButton = (key: string, item: IDashboardItem) => {
@@ -131,8 +132,8 @@ const onSave = async () => {
 };
 
 const onDefault = () => {
-  onSend(KEYS.PORT, { gpio: 0, command: COMMAND.GPIO_COMMAND_SAVE });
-  onSend(KEYS.DEVICE, { command: 254 });
+  onSend(KEY.PORT, { gpio: 0, command: CMD.SAVE });
+  onSend(KEY.DEVICE, { command: CMD.SAVE });
 };
 
 const onMenu = ({ value }: IListItem<number>) => {
@@ -147,26 +148,29 @@ const onDialog = (data: IDashboardItem) => {
   dialogItem.value = true;
 };
 
-const getState = (item: IDashboardItem) => getStateItem(item, main.value);
+const scope = { CMD, KEY, PORT };
 
-/** Команда устройству: объект с ключом сообщения (PORT, DEVICE, ...). */
-const isDeviceCommand = (value: unknown): value is { key: TTypeMessage['key'] } & Record<string, unknown> => {
+const getState = (item: IDashboardItem) => getStateItem(item, main.value, scope);
+
+const isDeviceCommand = (value: unknown): value is { key: TMessage['key'] | number } & Record<string, unknown> => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
   const key = (value as Record<string, unknown>).key;
-  return typeof key === 'string' && key in KEYS;
+  if (typeof key === 'string') return key in KEY;
+  if (typeof key === 'number') return (Object.values(KEY) as number[]).includes(key);
+  return false;
 };
 
 const setState = (item: IDashboardItem, value: unknown) => {
-  const data = setStateItem(item, value, main.value);
+  const data = setStateItem(item, value, main.value, scope);
   const commands = Array.isArray(data) ? data : [data];
 
   for (const command of commands) {
     if (!isDeviceCommand(command)) continue;
-    onSend(command.key, command as unknown as TTypeMessage['object']);
+    onSend(command.key, command as unknown as TMessage['object']);
   }
 };
 
-const icons = [...ICON_NAMES];
+const icons = [...ICON_NAMES, ...localIconNames];
 
 const cards = [...(dashboardCards || []), 'chart'];
 

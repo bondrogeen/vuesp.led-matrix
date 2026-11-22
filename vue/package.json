@@ -1,6 +1,6 @@
 {
   "name": "vuesp.led-matrix",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "author": "bondrogeen",
   "description": "This is a Vue 3 web application for managing devices (e.g., IoT devices). The app interacts with devices via WebSockets, displays firmware and file system information, provides functions for uploading, deleting, and formatting files, and manages device services through a user-friendly interface.",
   "repository": {
@@ -32,16 +32,17 @@
     "build": "npm run scripts && npm run build-web && npm run firmware",
     "dev": "vite",
     "firmware": "cd ../ && sh scripts/script.sh build",
-    "scripts": "npm run increment && npm run recovery && npm run struct-and-json",
+    "scripts": "npm run increment && npm run recovery && npm run protocol",
     "increment": "node ./scripts/increment.js",
-    "struct-and-json": "node ./scripts/struct-and-json.js",
     "recovery": "node ./scripts/recovery.js /recovery/ ../src/pages",
     "typecheck": "vue-tsc -b",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write src/**/*.{vue,js,ts,json,css}",
     "check": "npm run typecheck && npm run lint",
-    "tests": "cd ../src/tests && g++ -std=c++11 -I.. -I. -g -o test_runner test_runner.cpp arduino_stub.cpp ../runner/ScriptRunner.cpp && ./test_runner"
+    "tests": "cd ../src/tests && g++ -std=c++11 -I.. -I. -g -o test_runner test_runner.cpp arduino_stub.cpp ../runner/ScriptRunner.cpp && ./test_runner",
+    "protocol": "node ./scripts/protocol-and-json.js",
+    "protocol:check": "node ./scripts/protocol-and-json.js --check"
   },
   "dependencies": {
     "@vueuse/core": "13.9.0",
@@ -49,8 +50,8 @@
     "tailwindcss": "4.1.13",
     "vue": "3.5.45",
     "vue-router": "4.5.1",
-    "vuesp-components": "5.0.1",
-    "vuesp-struct": "1.3.1"
+    "vuesp-components": "5.2.1",
+    "vuesp-struct": "^2.0.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.5",

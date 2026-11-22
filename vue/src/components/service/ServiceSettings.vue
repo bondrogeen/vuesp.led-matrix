@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import type { Ref } from 'vue';
-import type { TTypeMessage, IMessageScan, IListItem, TTypeSend } from '@/types';
+import type { TMessage, IScan, IListItem, TSend } from '@/types';
 
-import { computed, ref, nextTick, watch } from 'vue';
+import { computed, ref, nextTick, watch, onUnmounted } from 'vue';
 import { required, maxLen, minLen, sameAs, ip, minVal, maxVal } from 'vuesp-components/validate';
 
-import { KEYS } from '@/utils/const';
+import { KEY } from '@/generated/protocol';
 
 import { useForm } from 'vuesp-components/composables';
 import type { TValidationSchema } from 'vuesp-components/types';
 
 import { useConnection } from '@/composables/useConnection';
 import { arrToStr, strToArr } from 'vuesp-components/helpers';
-
-import { VCheckbox, BlockScan, BlockService, BlockUpdate, VIcon, VCard } from 'vuesp-components/components';
 import { useLocale } from '@/composables/useLocale';
 import { useFetch } from '@vueuse/core';
+
+import { VIcon, VCheckbox, BlockScan, BlockService, BlockUpdate, VCard } from 'vuesp-components/components';
+import BlockDiagnostics from './BlockDiagnostics.vue';
 
 const { $t, getLocale, setLocale, list } = useLocale();
 
@@ -28,15 +29,31 @@ const isPass = ref(false);
 const isAuthPass = ref(false);
 const isDialog = ref(false);
 
-const scanList: Ref<Partial<IMessageScan>[]> = ref([]);
+const scanList: Ref<Partial<IScan>[]> = ref([]);
 
-const onMessage = ({ key, object }: TTypeMessage) => {
-  if (key === KEYS.SCAN && object) scanList.value.push(object);
+let settingsTimer: ReturnType<typeof setInterval> | null = null;
+const stopSettingsRequest = () => {
+  if (settingsTimer) clearInterval(settingsTimer);
+  settingsTimer = null;
 };
 
-const onInit = (send: TTypeSend) => {
-  send(KEYS.SETTINGS);
+const onMessage = ({ key, object }: TMessage) => {
+  if (key === KEY.SETTINGS) stopSettingsRequest();
+  if (key === KEY.SCAN && object) scanList.value.push(object);
 };
+
+const onInit = (send: TSend) => {
+  send(KEY.SETTINGS);
+  if (settingsTimer) return;
+  let attempts = 0;
+  settingsTimer = setInterval(() => {
+    attempts += 1;
+    if (attempts > 5) return stopSettingsRequest();
+    send(KEY.SETTINGS);
+  }, 2000);
+};
+
+onUnmounted(stopSettingsRequest);
 
 const { settings, dialogInfo, onSend, onDialog } = useConnection(onInit, onMessage);
 
@@ -86,7 +103,8 @@ watch(
     reAuthPassword.value = settings.value.authPass;
     discoveryPort.value = `${settings.value.discoveryPort}`;
     discoveryInterval.value = `${settings.value.discoveryInterval}`;
-  }
+  },
+  { immediate: true }
 );
 
 const onSubmit = handleSubmit((values) => {
@@ -98,8 +116,8 @@ const onSubmit = handleSubmit((values) => {
   settings.value.wifiDns = strToArr(values.wifiDns as string);
   settings.value.authLogin = values.authLogin as string;
   settings.value.authPass = values.authPass as string;
-  settings.value.discoveryPort = values.discoveryPort as number;
-  settings.value.discoveryInterval = values.discoveryInterval as number;
+  settings.value.discoveryPort = Number(values.discoveryPort);
+  settings.value.discoveryInterval = Number(values.discoveryInterval);
   onSave();
 });
 
@@ -107,21 +125,20 @@ const listWiFi: IListItem<number>[] = [
   { name: $t('off'), value: 0 },
   { name: $t('sta'), value: 1 },
   { name: $t('ap'), value: 2 },
-  // { name: 'STA + AP', value: 3 },
 ];
 
-const getValueListWiFi = (mode: number) => listWiFi.find((i) => i.value === mode)?.name;
+const getValueListWiFi = (mode: number) => listWiFi.find((i) => i.value === mode)?.name ?? '';
 
 const isWifiDHCP = computed(() => Boolean(settings.value.wifiDhcp || !settings.value.wifiMode));
 const isWifi = computed(() => Boolean(!settings.value.wifiMode));
 const isAuth = computed(() => Boolean(!settings.value.authMode));
 
 const onReboot = () => {
-  onSend(KEYS.REBOOT);
+  onSend(KEY.REBOOT);
 };
 
 const onSave = () => {
-  onSend(KEYS.SETTINGS, settings.value);
+  onSend(KEY.SETTINGS, settings.value);
   onSureReboot();
 };
 
@@ -140,7 +157,7 @@ const onMenu = () => {
   onSubmit();
 };
 
-const onSelectSsid = ({ ssid = '' }: Partial<IMessageScan>) => {
+const onSelectSsid = ({ ssid = '' }: Partial<IScan>) => {
   settings.value.wifiMode = 1;
   settings.value.wifiSsid = ssid;
   wifiSsid.value = ssid;
@@ -156,7 +173,7 @@ const onClose = () => (isDialog.value = false);
 const onScan = () => {
   isDialog.value = true;
   scanList.value = [];
-  onSend(KEYS.SCAN);
+  onSend(KEY.SCAN);
 };
 
 const onChange = (value: number) => (settings.value.wifiMode = value);
@@ -193,9 +210,9 @@ const onUpdate = (name: string, files: FormData) => {
             <v-select :model-value="getValueListWiFi(settings.wifiMode)" :label="$t('mode')" :items="listWiFi" @change="onSureOffWifi" />
           </div>
 
-          <v-text-field v-model="wifiSsid" v-bind="wifiSsidProps" :label="$t('ssid')" :disabled="isWifi" :append-button="!isWifi" @on-icon="onScan">
+          <v-text-field v-model="wifiSsid" v-bind="wifiSsidProps" :label="$t('ssid')" :disabled="isWifi" @on-icon="onScan">
             <template #icon>
-              <VIcon name="search"></VIcon>
+              <VIcon name="search" class="size-4"></VIcon>
             </template>
           </v-text-field>
 
@@ -219,7 +236,7 @@ const onUpdate = (name: string, files: FormData) => {
             <h3 class="text-lg font-semibold text-gray-dark-30 dark:text-white/90 mb-0">{{ $t('ipSett') }}</h3>
 
             <div>
-              <VCheckbox v-model="settings.wifiDhcp">{{ $t('dhcp') }}</VCheckbox>
+              <VCheckbox :model-value="Boolean(settings.wifiDhcp)" @update:model-value="settings.wifiDhcp = $event ? 1 : 0">{{ $t('dhcp') }}</VCheckbox>
             </div>
           </div>
 
@@ -237,7 +254,7 @@ const onUpdate = (name: string, files: FormData) => {
     <VCard :title="$t('security')" hover>
       <template #header>
         <div class="col-span-full">
-          <VCheckbox v-model="settings.authMode">{{ $t('auth') }}</VCheckbox>
+          <VCheckbox :model-value="Boolean(settings.authMode)" @update:model-value="settings.authMode = $event ? 1 : 0">{{ $t('auth') }}</VCheckbox>
         </div>
       </template>
 
@@ -279,7 +296,7 @@ const onUpdate = (name: string, files: FormData) => {
     <VCard :title="`${$t('discovery')} (UDP)`" hover>
       <template #header>
         <div class="col-span-full">
-          <VCheckbox v-model="settings.discovery">{{ $t('discovery') }}</VCheckbox>
+          <VCheckbox :model-value="Boolean(settings.discovery)" @update:model-value="settings.discovery = $event ? 1 : 0">{{ $t('discovery') }}</VCheckbox>
         </div>
       </template>
 
@@ -288,11 +305,15 @@ const onUpdate = (name: string, files: FormData) => {
       <v-text-field v-model="discoveryInterval" v-bind="discoveryIntervalProps" :label="$t('interval')" :disabled="!settings.discovery" />
     </VCard>
 
-    <teleport to="[data-slot='device']">
+    <VCard :title="$t('diag.title')" class="xl:col-span-2 2xl:col-span-2" hover>
+      <BlockDiagnostics />
+    </VCard>
+
+    <teleport to="#device-slot">
       <v-select :items="listMenu" @change="onMenu">
         <template #activator="{ on }">
           <v-button type="icon" @click="on.click">
-            <VIcon name="more" class="rotate-90"></VIcon>
+            <VIcon name="more" class="size-5 rotate-90"></VIcon>
           </v-button>
         </template>
       </v-select>

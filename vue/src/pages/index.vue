@@ -6,17 +6,20 @@ import { secToTime } from 'vuesp-components/helpers';
 
 import { useConnection } from '@/composables/useConnection';
 import { useLocale } from '@/composables/useLocale';
-import { KEYS } from '@/utils/const';
+import { KEY } from '@/utils/const';
+import PageHeader from '@/components/ui/PageHeader.vue';
 
 const { $t } = useLocale();
 
 const { pkg, main, isInit } = useConnection((send) => {
-  send(KEYS.INFO);
-  send(KEYS.DEVICE);
+  send(KEY.INFO);
+  send(KEY.DEVICE);
+  send(KEY.SENSORS);
 });
 
 const info = computed(() => main.value.info);
 const device = computed(() => main.value.device);
+const sensors = computed(() => main.value.sensors);
 
 const firmware = computed(() => (info.value.firmware ?? []).join('.') || '—');
 const uptime = computed(() => secToTime(info.value.uptime ?? 0).trim());
@@ -35,7 +38,11 @@ const memoryPercent = computed(() => {
   return total ? Math.min(100, Math.round(((info.value.usedBytes || 0) / total) * 100)) : 0;
 });
 const portsCount = computed(() => Object.keys(main.value.ports ?? {}).length);
-const sensorsCount = computed(() => Object.keys(main.value.dallas ?? {}).length);
+const bmpOk = computed(() => Boolean(sensors.value?.bmpPressure));
+const ahtOk = computed(() => sensors.value?.status === 1);
+const ahtStale = computed(() => sensors.value?.status === 2);
+const sensorsCount = computed(() => Number(bmpOk.value) + Number(ahtOk.value));
+const sensorValue = (value: number | undefined, digits = 1, unit = '') => (typeof value === 'number' && Number.isFinite(value) ? `${value.toFixed(digits)}${unit}` : '—');
 const deviceTime = computed(() => (device.value.now ? new Date(device.value.now * 1000).toLocaleString() : '—'));
 
 const quickLinks = computed(() => [
@@ -55,21 +62,20 @@ const resources = computed(() => [
 </script>
 
 <template>
-  <div class="container mx-auto space-y-6 pb-10">
-    <section class="flex flex-wrap items-start justify-between gap-4">
-      <div class="max-w-2xl">
-        <p class="text-sm font-medium text-cyan-main">{{ $t('home') }}</p>
-        <h1 class="mt-1">{{ info.name || pkg.name }}</h1>
-        <p class="mt-2 text-sm leading-relaxed text-gray-dark-25 dark:text-gray-main">{{ pkg.description }}</p>
-        <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-dark-25 dark:text-gray-main">
+  <div class="space-y-6 pb-10">
+    <PageHeader :title="info.name || pkg.name">
+      <template #aside>
+        <div class="flex flex-wrap items-center justify-end gap-2 text-[11px] text-gray-dark-25 dark:text-gray-main">
           <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1" :class="isInit ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'">
             <span class="size-1.5 rounded-full" :class="isInit ? 'bg-emerald-500' : 'bg-amber-500'" />
             {{ isInit ? $t('homePage.online') : $t('homePage.offline') }}
           </span>
-          <span class="rounded-full bg-white/5 px-2.5 py-1">{{ $t('menu.dashboard') }} · {{ firmware }}</span>
+          <span class="hidden rounded-full bg-white/5 px-2.5 py-1 sm:inline-flex">{{ $t('menu.dashboard') }} · {{ firmware }}</span>
         </div>
-      </div>
-    </section>
+      </template>
+    </PageHeader>
+
+    <p class="-mt-3 max-w-2xl text-sm leading-relaxed text-gray-dark-25 dark:text-gray-main">{{ pkg.description }}</p>
 
     <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <VCard :title="$t('homePage.firmware')" hover>
@@ -97,6 +103,51 @@ const resources = computed(() => [
         <p class="mt-1 text-xs text-gray-dark-25 dark:text-gray-main">{{ portsCount }} {{ $t('homePage.ports') }} · {{ sensorsCount }} {{ $t('homePage.sensors') }}</p>
       </VCard>
     </section>
+
+    <VCard :title="$t('homePage.sensors')" hover>
+      <div class="grid gap-3 md:grid-cols-2">
+        <div class="rounded-md bg-white/5 p-4">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-semibold">BMP280</span>
+            <span class="rounded-full px-2 py-0.5 text-[11px]" :class="bmpOk ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'">
+              {{ bmpOk ? $t('homePage.sensorOk') : $t('homePage.sensorError') }}
+            </span>
+          </div>
+          <dl class="mt-3 grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <dt class="text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.temperature') }}</dt>
+              <dd class="mt-1 font-mono">{{ sensorValue(sensors?.bmpTemperature, 1, ' °C') }}</dd>
+            </div>
+            <div>
+              <dt class="text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.pressure') }}</dt>
+              <dd class="mt-1 font-mono">{{ sensorValue(sensors?.bmpPressure, 0, ' Pa') }}</dd>
+            </div>
+            <div>
+              <dt class="text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.altitude') }}</dt>
+              <dd class="mt-1 font-mono">{{ sensorValue(sensors?.bmpAltitude, 1, ' m') }}</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="rounded-md bg-white/5 p-4">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-semibold">AHT10/20</span>
+            <span class="rounded-full px-2 py-0.5 text-[11px]" :class="ahtOk ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'">
+              {{ ahtOk ? $t('homePage.sensorOk') : ahtStale ? $t('homePage.sensorStale') : $t('homePage.sensorError') }}
+            </span>
+          </div>
+          <dl class="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <dt class="text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.temperature') }}</dt>
+              <dd class="mt-1 font-mono">{{ sensorValue(sensors?.ahtTemperature, 1, ' °C') }}</dd>
+            </div>
+            <div>
+              <dt class="text-gray-dark-25 dark:text-gray-main">{{ $t('homePage.humidity') }}</dt>
+              <dd class="mt-1 font-mono">{{ sensorValue(sensors?.ahtHumidity, 1, ' %') }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </VCard>
 
     <section>
       <div class="mb-3 flex flex-wrap items-end justify-between gap-2">

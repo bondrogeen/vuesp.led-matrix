@@ -26,6 +26,7 @@ LED-матрица 16×16: эффекты, сценарии и визуальн�
 ```bash
 cd vue
 npm ci
+npm run protocol
 npm run build-web
 ```
 
@@ -41,6 +42,13 @@ npm run build
 ```bash
 ~/.platformio/penv/bin/pio run
 ~/.platformio/penv/bin/pio run -t buildfs
+```
+
+Заливка прошивки и веб-сборки:
+
+```bash
+~/.platformio/penv/bin/pio run -t upload
+~/.platformio/penv/bin/pio run -t uploadfs
 ```
 
 ## Возможности

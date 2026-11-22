@@ -1,5 +1,7 @@
 <template>
   <div class="h-[100dvh] min-h-full flex flex-col">
+    <PageBackdrop />
+
     <AppOverlay v-if="!isConnect">
       <div class="text-2xl font-bold mb-4">{{ $t('disconn') }}</div>
 
@@ -8,7 +10,7 @@
       </div>
     </AppOverlay>
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="relative z-10 flex h-screen overflow-hidden">
       <AppAside v-if="!isIframe" :isSidebar="isSidebar" @sidebar="onSidebar">
         <h3 class="mb-4 text-xs h-5 uppercase flex items-center gap-2 justify-between" :class="isSidebar ? 'lg:hidden' : ''">
           <span v-if="nameDevice" class="text-gray-main text-nowrap">{{ nameDevice }}</span>
@@ -16,14 +18,7 @@
 
         <AppNav :menu="getMenu" :isSidebar="isSidebar" :fullPath="fullPath" @sidebar="onSidebar">
           <template #icon="{ item }">
-            <VIcon name="home" v-if="item.icon === 'home'" class="size-5" />
-            <VIcon name="dashboard" v-else-if="item.icon === 'dashboard'" class="size-5" />
-            <VIcon name="script" v-else-if="item.icon === 'script'" class="size-5" />
-            <VIcon name="settings" v-else-if="item.icon === 'settings'" class="size-5" />
-            <VIcon name="storage" v-else-if="item.icon === 'storage'" class="size-5" />
-            <VIcon name="gpio" v-else-if="item.icon === 'gpio'" class="size-5" />
-
-            <VIcon name="home" v-else />
+            <VIcon :name="item.icon || 'home'" class="size-5" />
           </template>
         </AppNav>
 
@@ -32,17 +27,17 @@
         <BlockStatus
           v-bind="info"
           :pkg="pkg"
-          class="glass-inset mb-4 w-full px-4 py-4 text-center"
+          class="mb-4 w-full rounded-md border border-gray-light-10 dark:border-gray-dark-30 bg-gray-light-30 dark:bg-white/[0.03] px-4 py-4 text-center"
           :class="isSidebar ? 'lg:hidden' : ''"
         >
           <template #name="{ item }">
             {{ $t(item.name) }}
           </template>
           <template #default="{ repo, home }">
-            <div class="flex gap-2 mt-4">
-              <v-button :href="repo" target="_blank" class="w-full text-white" color="blue">Github</v-button>
+            <div class="grid grid-cols-2 gap-2 mt-4">
+              <v-button :href="repo" target="_blank" color="gray" variant="soft">Github</v-button>
 
-              <v-button v-if="home" :href="home" target="_blank" class="w-full" color="blue" variant="outline">{{ $t('homepage') }}</v-button>
+              <v-button v-if="home" :href="home" target="_blank" color="blue" variant="outline">{{ $t('homepage') }}</v-button>
             </div>
           </template>
         </BlockStatus>
@@ -68,7 +63,7 @@
             <div class="flex items-center justify-between py-4 sticky top-0 z-20 px-2">
               <h5>{{ $t('noti') }}</h5>
 
-              <VButton size="sm" color="gray" class="text-sm" :disabled="!isNew" @click="appStore.readAllNotification">{{ $t('mark') }}</VButton>
+              <VButton size="sm" color="gray" :disabled="!isNew" @click="appStore.readAllNotification">{{ $t('mark') }}</VButton>
             </div>
           </template>
           <template #empty>
@@ -82,8 +77,8 @@
       <div v-html="dialog.message" />
 
       <div v-if="dialog.callback" class="flex gap-3 mt-4 justify-end">
-        <v-button class="min-w-[100px]" variant="outline" color="blue" @click="(dialog.callback(), close())">{{ $t('yes') }}</v-button>
-        <v-button class="min-w-[100px]" color="red" @click="close()">{{ $t('no') }}</v-button>
+        <v-button class="min-w-[100px]" color="blue" variant="soft" @click="(dialog.callback(), close())">{{ $t('yes') }}</v-button>
+        <v-button class="min-w-[100px]" color="red" variant="soft" @click="close()">{{ $t('no') }}</v-button>
       </div>
     </v-dialog>
 
@@ -115,13 +110,11 @@ import { useStore } from '@/composables/useStore';
 import { useLocale } from '@/composables/useLocale';
 
 import { AppHeader, AppNotification, AppOverlay, AppAside, AppNav, AppProgress, BlockInfo, BlockStatus, VIcon } from 'vuesp-components/components';
+import PageBackdrop from '@/components/ui/PageBackdrop.vue';
 
-const route = useRoute();
 const { $t, setLocale } = useLocale();
 
-// The hub passes its current language to the embedded device UI via ?locale.
-const queryLocale = Array.isArray(route.query.locale) ? route.query.locale[0] : route.query.locale;
-setLocale(typeof queryLocale === 'string' && queryLocale ? queryLocale : localGet('locale') || navigator?.language);
+setLocale(localGet('locale') || navigator?.language);
 
 const { isIframe } = useFrame();
 const { isConnect } = useSocket();
@@ -132,6 +125,8 @@ const appStore = useAppStore();
 
 const isSidebar = ref(false);
 const isSidebarRight = ref(false);
+
+const route = useRoute();
 
 const getMenu = computed(() => menu.value.map((i) => ({ ...i, name: $t(i.name) })));
 const info = computed(() => main.value.info);
